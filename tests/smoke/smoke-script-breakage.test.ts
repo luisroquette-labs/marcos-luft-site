@@ -39,6 +39,14 @@ const PAGE_HTML_MISSING_PREFIX = (title: string) => `<!DOCTYPE html><html><head>
 <script src="${BASE_PATH}/_next/app.js"></script>
 </body></html>`;
 
+/** Same page, but its script src is percent-encoded the way Next renders dynamic-segment chunk paths. */
+const PAGE_HTML_ENCODED_ASSET = (title: string) => `<!DOCTYPE html><html><head>
+<link rel="stylesheet" href="${BASE_PATH}/_next/style.css">
+</head><body><h1>${title}</h1>
+<img src="${BASE_PATH}/_next/image.png">
+<script src="${BASE_PATH}/_next/static/chunks/app/blog/%5Bslug%5D/page-abc123.js"></script>
+</body></html>`;
+
 const SITEMAP_XML = (routes: string[]) =>
   `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${routes
     .map((route) => `<url><loc>https://example.github.io${BASE_PATH}${route === "/" ? "/" : `${route}/`}</loc></url>`)
@@ -52,6 +60,8 @@ interface FixtureOverrides {
   /** When true, the _next/ asset files are never written, even though the HTML references them. */
   skipAssets?: boolean;
   sitemapXml?: string;
+  /** Extra files to write under the fixture root, keyed by relative path (parent dirs auto-created). */
+  extraFiles?: Record<string, string>;
 }
 
 /**
@@ -79,6 +89,12 @@ async function buildFixture(overrides: FixtureOverrides = {}): Promise<string> {
 
   await writeFile(path.join(dir, "sitemap.xml"), overrides.sitemapXml ?? SITEMAP_XML(ROUTES));
   await writeFile(path.join(dir, "robots.txt"), ROBOTS_TXT);
+
+  for (const [relativePath, content] of Object.entries(overrides.extraFiles ?? {})) {
+    const filePath = path.join(dir, relativePath);
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, content);
+  }
 
   return dir;
 }
@@ -127,4 +143,29 @@ test("fails when a page's asset reference is missing the production basePath pre
   const { exitCode, stderr } = await buildAndRun(overrides);
   assert.notEqual(exitCode, 0, "expected the script to fail when an asset href lacks the basePath prefix");
   assert.match(stderr, /is missing the "\/marcos-luft-site" basePath prefix/);
+});
+
+// REGRESSÃO: a 404 page absent from sitemap.xml is correct, not a bug — see smoke-test.mjs checkSitemapAndRobots.
+test("passes when the export has a /404 page that isn't listed in sitemap.xml", async () => {
+  const overrides: FixtureOverrides = {
+    extraFiles: {
+      "404.html": "<!DOCTYPE html><html><body>Not found</body></html>",
+      "404/index.html": "<!DOCTYPE html><html><body>Not found</body></html>",
+    },
+  };
+  const { exitCode, stderr } = await buildAndRun(overrides);
+  assert.equal(exitCode, 0, `expected a /404 page missing from sitemap.xml to still pass, got:\n${stderr}`);
+});
+
+// REGRESSÃO: Next percent-encodes dynamic segments ("[slug]" -> "%5Bslug%5D") in rendered HTML, but the
+// on-disk chunk keeps literal brackets — see smoke-test.mjs checkAssetReferencesResolve's decodeURIComponent call.
+test("passes when an asset reference is percent-encoded but the real file exists at the decoded path", async () => {
+  const overrides: FixtureOverrides = {
+    pageHtml: (route) => (route === "/blog/post-1" ? PAGE_HTML_ENCODED_ASSET(route) : PAGE_HTML(route)),
+    extraFiles: {
+      "_next/static/chunks/app/blog/[slug]/page-abc123.js": "console.log('chunk')",
+    },
+  };
+  const { exitCode, stderr } = await buildAndRun(overrides);
+  assert.equal(exitCode, 0, `expected a percent-encoded asset path to resolve against its decoded file, got:\n${stderr}`);
 });

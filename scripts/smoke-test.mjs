@@ -3,8 +3,7 @@
 // workflow publishes it. Runs only on GitHub Actions, after `next build` —
 // never on the Mac (CK-16). CK-6: sitemap.xml/robots.txt list every route
 // DISCOVERED from out/, so it can't go stale (see tests/unit/sitemap.test.ts).
-// CK-7: every asset on home, /sobre, /blog, and one /blog/[slug] page
-// resolves to a real file in the export, under the production basePath.
+// CK-7: every asset on home, /sobre, /blog, and one /blog/[slug] page resolves to a real file in the export, under the production basePath.
 // Dev-only: lives under scripts/, never imported by app/ or components/.
 
 import { createServer } from "node:http";
@@ -106,7 +105,7 @@ async function checkSitemapAndRobots(failures) {
   const exportedRoutes = new Set((await discoverRoutes()).map(withoutTrailingSlash));
 
   for (const route of exportedRoutes) {
-    if (!sitemapRoutes.has(route)) failures.push(`sitemap.xml is missing route ${route}`);
+    if (route !== "/404" && !sitemapRoutes.has(route)) failures.push(`sitemap.xml is missing route ${route}`); // a 404 page is correctly absent from sitemap.xml
   }
   for (const route of sitemapRoutes) {
     if (!exportedRoutes.has(route)) failures.push(`sitemap.xml lists route ${route}, which doesn't exist in the export`);
@@ -142,7 +141,8 @@ async function checkAssetReferencesResolve(pageRoute, html, failures) {
       continue;
     }
 
-    const assetPath = url.slice(BASE_PATH.length).split("?")[0].split("#")[0];
+    // Decode: rendered HTML percent-encodes "[slug]" as "%5Bslug%5D", but the on-disk file keeps literal brackets.
+    const assetPath = decodeURIComponent(url.slice(BASE_PATH.length).split("?")[0].split("#")[0]);
     const exists = await stat(path.join(OUT_DIR, assetPath)).then(() => true, () => false);
     if (!exists) failures.push(`${pageRoute}: asset "${url}" does not exist in the export`);
   }
