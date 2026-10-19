@@ -24,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -42,7 +42,7 @@ jobs:
       # future edit un-pinning an action or widening `permissions` would
       # pass CI, since `npm run test` above only globs tests/unit + tests/component.
       - name: Smoke meta-tests (workflow security + smoke-script checks)
-        run: node --import ./tests/support/register-tsx.mjs --test "tests/smoke/*.test.ts"
+        run: node --import ./tests/support/register-tsx.mjs --test tests/smoke/*.test.ts
 
       # The static export build (`next build` with output:"export") runs
       # exclusively here, never on a contributor's machine (CK-16) — Mac RAM
