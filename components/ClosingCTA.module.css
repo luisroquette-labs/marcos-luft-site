@@ -1,0 +1,112 @@
+/* ClosingCTA — full-bleed closing contact band. Ink-on-cream only (AD-1):
+   no color beyond --cream/--ink exists anywhere in this file. */
+
+.section {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(96px, 16vw, 180px) 24px;
+  background: var(--cream);
+  text-align: center;
+}
+
+/* ---------- background marquee ---------- */
+
+.marquee {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 36s linear infinite;
+  will-change: transform;
+}
+
+.marqueeCopy {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(4.5rem, 13vw, 11rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  color: var(--ink);
+  opacity: 0.06;
+}
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack { animation: none; }
+}
+
+/* ---------- foreground content ---------- */
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.4rem, 5.6vw, 4.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.note {
+  font-family: var(--font-ui);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  color: var(--ink-soft);
+  max-width: 520px;
+  margin: 22px auto 0;
+  line-height: 1.5;
+}
+
+.seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 40px;
+  padding: 14px 14px 14px 30px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px -12px rgba(27, 24, 19, 0.45);
+}
+
+.sealIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 1.1rem;
+}

@@ -1,0 +1,74 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+# Minimal scope for OIDC-based GitHub Pages deployment (CK-22) — no
+# `contents: write` or other scope is granted, only what actions/deploy-pages
+# needs to exchange an OIDC token for a Pages deployment.
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit + component tests
+        run: npm run test
+
+      # These meta-tests guard the workflow file itself (CK-22: minimal
+      # permissions, every action pinned to a full commit SHA) and the
+      # smoke-test script's own failure detection. Without this step a
+      # future edit un-pinning an action or widening `permissions` would
+      # pass CI, since `npm run test` above only globs tests/unit + tests/component.
+      - name: Smoke meta-tests (workflow security + smoke-script checks)
+        run: node --import ./tests/support/register-tsx.mjs --test "tests/smoke/*.test.ts"
+
+      # The static export build (`next build` with output:"export") runs
+      # exclusively here, never on a contributor's machine (CK-16) — Mac RAM
+      # is shared by every parallel Claude Code/Codex session, and this
+      # repo's basePath only matches production when built as a GitHub Pages
+      # project page (see next.config.mjs).
+      - name: Build static export
+        run: NEXT_PUBLIC_BASE_PATH=/marcos-luft-site npm run build
+
+      # GitHub Pages runs the export through Jekyll by default, which skips
+      # any top-level directory starting with "_" — that would hide every
+      # asset under out/_next/. This opts out so those assets are served.
+      - name: Disable Jekyll processing
+        run: touch out/.nojekyll
+
+      - name: Smoke test the export
+        run: node scripts/smoke-test.mjs
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: ./out
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

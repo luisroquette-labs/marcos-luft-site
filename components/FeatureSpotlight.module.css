@@ -1,0 +1,139 @@
+/* Premium services grid — hairline rails between cards, a corner crosshair
+   mark on every card, and a pointer-tracked spotlight wash. Ink-on-cream
+   only (reuses the --ink/--cream/--ink-hairline tokens from globals.css;
+   AD-1 monochromatic, no second color). */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1px solid var(--ink-hairline);
+  border-left: 1px solid var(--ink-hairline);
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  padding: 32px 28px;
+  border-right: 1px solid var(--ink-hairline);
+  border-bottom: 1px solid var(--ink-hairline);
+  /* Pointer position in card-local px, set via JS on mousemove; defaults to
+     the card's own center so the spotlight has a sane position even before
+     the first pointer event (e.g. keyboard/touch focus). */
+  --spot-x: 50%;
+  --spot-y: 50%;
+}
+
+/* Soft ink/warm wash that tracks --spot-x/--spot-y, visible only on hover.
+   A radial-gradient layer (not box-shadow/filter) keeps this to one paint
+   layer and lets prefers-reduced-motion below kill it with a single rule. */
+.spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(
+    260px circle at var(--spot-x) var(--spot-y),
+    color-mix(in srgb, var(--ink) 8%, transparent),
+    transparent 70%
+  );
+}
+
+.card:hover .spotlight {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Belt-and-suspenders with the JS guard in FeatureSpotlight.tsx: even if
+     a mousemove handler somehow fired, the wash itself cannot render. */
+  .spotlight {
+    display: none;
+  }
+}
+
+/* Corner crosshair marks — a short horizontal + vertical hairline crossing
+   at each of the card's four corners, echoing a viewfinder/broadcast frame. */
+.corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.corner::before,
+.corner::after {
+  content: "";
+  position: absolute;
+  background: var(--ink-hairline);
+}
+
+.corner::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+}
+
+.corner::after {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+.cornerTl {
+  top: -6px;
+  left: -6px;
+}
+
+.cornerTr {
+  top: -6px;
+  right: -6px;
+}
+
+.cornerBl {
+  bottom: -6px;
+  left: -6px;
+}
+
+.cornerBr {
+  bottom: -6px;
+  right: -6px;
+}
+
+.title {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.description {
+  position: relative;
+  color: var(--ink-dim);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.cta {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink-hairline);
+  text-decoration: none;
+}
+
+.cta:hover {
+  border-bottom-color: var(--ink);
+}

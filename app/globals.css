@@ -1,0 +1,416 @@
+/* ============================================================
+   Marcos Luft — sistema visual editorial "ink-on-cream" (AD-1)
+   Fundo quase-branco quente + tinta quase-preta, monocromático.
+   Display serifado de alto contraste (Fraunces) + sans neutra (Inter).
+   ============================================================ */
+
+:root {
+  --cream: #f6f3ee;
+  --cream-soft: #efebe3; /* alternância sutil entre seções */
+  --ink: #1b1813;
+  --ink-soft: #4a443c; /* texto secundário */
+  --ink-hairline: #d8d2c5; /* bordas/filetes */
+  --ink-accent: #1b1813; /* sem segunda cor — monocromático (AD-1); reusa ink para qualquer "accent" */
+
+  /* Aliases de compatibilidade — várias regras portadas da paleta antiga
+     (navy/golden-hour) mais abaixo neste arquivo (ex.: .eyebrow, .btn-*,
+     .nav-links, .logo, .site-header, .hero-badge, .stats-row, .about,
+     .footer-*) ainda referenciam estes nomes de var. Apontá-los para os
+     tokens ink-on-cream acima — em vez de reescrever cada seletor — é o que
+     faz o CK-8 ("aplicado como base, não só no hero") valer para o arquivo
+     inteiro com uma única mudança (fix CRÍTICO, sinalizado na revisão da
+     Fase 2 — nenhuma segunda cor; tudo aqui resolve para tons de --ink). */
+  --orange: var(--ink);
+  --orange-soft: var(--ink-soft);
+  --orange-bright: var(--ink);
+  --cyan: var(--ink);
+  --line: var(--ink-hairline);
+  --line-strong: var(--ink-hairline);
+  --muted: var(--ink-soft);
+  --faint: var(--ink-soft);
+  --ink-dim: var(--ink-soft);
+  --bg-2: var(--cream-soft);
+  --cream-ink: var(--ink);
+
+  /* --font-display é alimentado diretamente pelo next/font/google (layout.tsx, Fraunces) */
+  --font-body: var(--font-sans), system-ui, sans-serif;
+  --font-ui: var(--font-sans), system-ui, sans-serif;
+
+  --wrap: 1180px;
+  --radius: 18px;
+  --radius-lg: 26px;
+}
+
+* { box-sizing: border-box; }
+
+/* `auto`, not `smooth`: Lenis (components/SmoothScroll.tsx) now owns the
+   easing for every in-page jump via its own rAF loop. CSS scroll-behavior:
+   smooth additionally smooth-animates each of Lenis's own per-frame
+   window.scrollTo() calls, compounding into a runaway overshoot (bug found
+   writing the CK-1 e2e test, step 11) — confirmed by lenis.targetScroll
+   landing correctly while the real window.scrollY kept drifting past it.
+   When Lenis doesn't mount (prefers-reduced-motion), an instant native jump
+   is the correct, more accessible behavior anyway. */
+html { scroll-behavior: auto; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+.wrap { width: min(var(--wrap), 92vw); margin: 0 auto; }
+
+/* ---------- tipografia ---------- */
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; line-height: 1.06; margin: 0; letter-spacing: -0.005em; }
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.0;
+}
+.serif-italic { font-style: italic; font-weight: 500; }
+
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--orange-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: "";
+  width: 22px; height: 1px;
+  background: linear-gradient(90deg, var(--orange), transparent);
+}
+.eyebrow.cyan { color: var(--cyan); }
+.eyebrow.cyan::before { background: linear-gradient(90deg, var(--cyan), transparent); }
+
+.lead { color: var(--ink-dim); font-size: 1.08rem; max-width: 60ch; }
+.muted { color: var(--muted); }
+
+/* ---------- botões ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-ui);
+  font-weight: 600; font-size: 0.92rem; letter-spacing: 0.01em;
+  padding: 14px 26px; border-radius: 999px;
+  border: 1px solid transparent; cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.25s ease, background 0.2s ease;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: linear-gradient(180deg, var(--orange-bright), var(--orange));
+  color: var(--cream);
+  box-shadow: 0 10px 30px -10px rgba(27, 24, 19, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 40px -12px rgba(27, 24, 19, 0.45); }
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-cyan {
+  background: linear-gradient(180deg, var(--ink-soft), var(--cyan));
+  color: var(--cream);
+  box-shadow: 0 10px 30px -12px rgba(27, 24, 19, 0.3);
+}
+.btn-cyan:hover { transform: translateY(-2px); }
+
+/* ---------- header ---------- */
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: blur(14px);
+  background: linear-gradient(180deg, rgba(246,243,238,0.94), rgba(246,243,238,0.74));
+  border-bottom: 1px solid var(--line);
+}
+.site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 20px; }
+.nav-links { display: flex; align-items: center; gap: 26px; }
+.nav-links a {
+  font-family: var(--font-ui); font-size: 0.85rem; color: var(--ink-dim);
+  letter-spacing: 0.02em; transition: color 0.18s ease;
+}
+.nav-links a:hover { color: var(--orange-soft); }
+.header-cta { display: flex; align-items: center; gap: 14px; }
+.nav-toggle { display: none; }
+
+/* ---------- logo ---------- */
+.logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-ui); font-weight: 700; letter-spacing: 0.02em; }
+.logo .mark { width: 30px; height: 30px; }
+.logo .word { font-size: 1.02rem; }
+.logo .word b { color: var(--ink); }
+.logo .word span { color: var(--orange); }
+
+/* ---------- hero ---------- */
+/* padding-top trimmed from 90px to 24px (bug found writing the CK-2 e2e
+   test, step 11): at the standard 1280x720 desktop viewport the stack of
+   eyebrow + h1 + lead + hero-badge pushed hero-badge's bottom edge to
+   ~761px — fully below the fold, failing CK-2's "visible without scrolling"
+   requirement by itself, not an artifact of the test. This reclaims the
+   ~66px the badge needed, verified back in view with ~24px of margin. */
+.hero { position: relative; min-height: 92vh; display: flex; align-items: center; padding: 24px 0 56px; overflow: hidden; }
+.plasma-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; opacity: 1; }
+.hero-inner {
+  position: relative; max-width: 940px; width: 100%;
+  background: color-mix(in srgb, var(--cream) 80%, transparent);
+  backdrop-filter: blur(3px);
+  border-radius: var(--radius-lg);
+  padding: 28px 34px;
+}
+.hero h1 { font-size: clamp(2.6rem, 7vw, 5.2rem); margin: 22px 0 0; }
+.hero h1 .accent { color: var(--orange); font-style: italic; font-weight: 500; }
+.hero .lead { margin: 24px 0 0; font-size: 1.18rem; }
+.hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+
+
+/* caixa de prompt (glass, estilo Launchpad) */
+.prompt-box {
+  margin-top: 34px; max-width: 620px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 10px 10px 22px;
+  border-radius: 999px;
+  background: rgba(14, 17, 22, 0.72);
+  border: 1px solid var(--line-strong);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 50px -24px rgba(0,0,0,0.9);
+  backdrop-filter: blur(8px);
+}
+.prompt-box .typed { flex: 1; font-family: var(--font-ui); color: var(--ink-dim); font-size: 0.98rem; min-height: 1.4em; }
+.prompt-box .caret { color: var(--orange); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.prompt-box .send {
+  width: 44px; height: 44px; border-radius: 999px; flex: none;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, var(--orange-bright), var(--orange)); color: #fff;
+  box-shadow: 0 8px 22px -8px rgba(255,77,18,0.8);
+}
+
+/* badge +320% flutuante */
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 30px;
+  font-family: var(--font-ui); font-size: 0.82rem; color: var(--ink-soft);
+  padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--ink-hairline); background: var(--cream-soft);
+}
+.hero-badge b { color: var(--ink); }
+
+/* ---------- stats ---------- */
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  margin-top: 60px; border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden; background: var(--line);
+}
+.stat { background: var(--cream-soft); padding: 26px 24px; display: flex; flex-direction: column; gap: 6px; }
+.stat-n { font-family: var(--font-display); font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 600; color: var(--ink); line-height: 1; }
+.stat-n .u { color: var(--ink-soft); }
+.stat-label { font-family: var(--font-ui); font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* ---------- seção genérica ---------- */
+.section { padding: 92px 0; position: relative; }
+.section-head { max-width: 720px; margin-bottom: 48px; }
+.section-head h2 { font-size: clamp(2rem, 4.6vw, 3.3rem); margin: 18px 0 0; }
+.section-head .lead { margin-top: 18px; }
+.section-head h2 .em { color: var(--orange); font-style: italic; font-weight: 500; }
+
+
+
+/* ---------- blog teaser + cards ----------
+   Stacked list wrapper for EditorialPostCard (replaces the old 3-col
+   .blog-grid of .post-card — EditorialPostCard is a text-only row, not a
+   grid tile). A hairline divider between consecutive posts is all the
+   wrapper needs to add; EditorialPostCard.module.css owns everything else. */
+.post-list { display: flex; flex-direction: column; }
+.post-list > * + * { border-top: 1px solid var(--ink-hairline); }
+
+/* ---------- artigo ---------- */
+.article { max-width: 720px; margin: 0 auto; padding: 60px 0 40px; }
+.article h1 { font-size: clamp(2rem, 5vw, 3.2rem); margin: 18px 0; }
+.article .art-meta { font-family: var(--font-ui); font-size: 0.8rem; color: var(--muted); }
+.article-body { font-size: 1.08rem; color: var(--ink-dim); line-height: 1.8; }
+.article-body h2 { font-size: 1.7rem; color: var(--ink); margin: 40px 0 14px; }
+.article-body h3 { font-size: 1.3rem; color: var(--ink); margin: 28px 0 10px; }
+.article-body p { margin: 0 0 18px; }
+.article-body ul { padding-left: 22px; margin: 0 0 18px; }
+.article-body li { margin-bottom: 8px; }
+.article-body a { color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
+.article-body strong { color: var(--ink); }
+.back-link { font-family: var(--font-ui); font-size: 0.85rem; color: var(--muted); display: inline-flex; gap: 8px; }
+.back-link:hover { color: var(--orange); }
+
+/* ---------- footer ---------- */
+.site-footer { border-top: 1px solid var(--line); padding: 60px 0 40px; margin-top: 40px; }
+.footer-top { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 30px; }
+.footer-top p { color: var(--muted); font-size: 0.94rem; max-width: 36ch; margin: 14px 0 0; }
+.footer-col h4 { font-family: var(--font-ui); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin: 0 0 16px; font-weight: 600; }
+.footer-col a { display: block; color: var(--ink-dim); font-size: 0.94rem; margin-bottom: 10px; }
+.footer-col a:hover { color: var(--orange-soft); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--line); font-family: var(--font-ui); font-size: 0.78rem; color: var(--faint); }
+
+
+/* ---------- reveal ---------- */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* ---------- responsivo ---------- */
+@media (max-width: 920px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: inline-flex; }
+  .footer-top { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .section { padding: 64px 0; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .header-cta .btn-primary { display: none; }
+  .logo .word { font-size: 0.92rem; }
+}
+
+/* segurança contra overflow horizontal: grid/flex items encolhem, inputs não estouram */
+input, select, textarea { max-width: 100%; }
+input[type="range"] { min-width: 0; }
+.prompt-box { max-width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* ---------- plate (retrato emoldurado) ----------
+   Portado de people/victor-aragao/site/app/globals.css (~L201-240),
+   recolorido de tons teal/stain para ink-on-cream (AD-6). */
+.plate {
+  position: relative;
+  width: min(300px, 74vw);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #faf7f1 0%, #f1ece0 42%, #e3dcc9 100%);
+  box-shadow:
+    0 0 0 1px var(--ink-hairline),
+    0 0 0 11px var(--cream),
+    0 0 0 12px var(--ink-hairline),
+    0 26px 60px -30px rgba(27, 24, 19, 0.35);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.plate::after { /* textura sutil dentro da moldura */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(27, 24, 19, 0.1) 1.2px, transparent 1.8px);
+  background-size: 26px 26px;
+  mix-blend-mode: multiply;
+}
+.plate img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; }
+.plate--photo { background: var(--ink); width: min(260px, 70vw); }
+.plate--photo::after { opacity: 0.12; }
+.plate .monogram {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 12vw, 5.5rem);
+  color: var(--ink);
+  letter-spacing: -0.03em;
+}
+.plate-cap {
+  margin-top: 1rem;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ---------- editorial layout blocks (08-editorial-layout-blocks) ----------
+   ProvaBand, SobreSplit — reimplementados framework-free a partir da
+   gramática felipemenezes098 hero-04/05/07 (AD-4), estilizados só com as
+   CSS vars ink-on-cream do :root (AD-1). OfferCard/EditorialTimeline
+   (antigos vizinhos deste bloco) foram substituídos por FeatureSpotlight/
+   PigmentLedger, que trazem seu próprio CSS Module — ver 11-component-
+   integration-and-page-wiring. */
+
+/* Formação — faixa inline simples (curso · instituição · status); reusa o
+   badge visual "atual" (.timeline-badge, abaixo) para o status "em
+   andamento" (CK-12). */
+.formacao-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.formacao-item {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+  padding: 18px 0; border-top: 1px solid var(--ink-hairline);
+  font-family: var(--font-ui);
+}
+.formacao-item:first-child { border-top: none; }
+.formacao-course { font-weight: 600; color: var(--ink); font-size: 1.05rem; }
+.formacao-institution { color: var(--ink-soft); }
+
+/* ProvaBand — faixa de imagem em largura total (hero-07-style) com os
+   créditos nomeados ao lado/sobre a foto de cobertura. */
+.prova-band {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--ink-hairline);
+}
+.prova-band-image { width: 100%; height: 100%; min-height: 320px; object-fit: cover; }
+.prova-band-content { padding: 44px 40px; background: var(--cream); display: flex; flex-direction: column; gap: 14px; }
+.prova-band-title { font-size: clamp(1.7rem, 3.4vw, 2.3rem); margin-top: 10px; }
+.prova-band-framing { font-family: var(--font-display); font-style: italic; font-size: 1.1rem; color: var(--ink); margin: 0; }
+.prova-credentials { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.prova-credential {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--ink-hairline);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+}
+.prova-credential-program { font-weight: 600; color: var(--ink); }
+.prova-credential-network,
+.prova-credential-years { color: var(--ink-soft); }
+
+/* .timeline-badge — "atual"/"em andamento" pill. Originally paired with
+   EditorialTimeline (now PigmentLedger, which ships its own CSS Module);
+   still shared by the FORMAÇÃO list in app/page.tsx and app/sobre/page.tsx
+   (CK-12), so it stays here rather than moving into a component module. */
+.timeline-badge {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+}
+
+/* SobreSplit — hero-05-style esquerda/direita; retrato `.plate--photo` +
+   texto-chamada + link para /sobre. */
+.sobre-split { display: grid; grid-template-columns: 0.8fr 1fr; gap: 48px; align-items: center; }
+.sobre-split-photo { display: flex; justify-content: center; }
+.sobre-split-text { display: flex; flex-direction: column; gap: 20px; }
+.sobre-split-teaser { font-family: var(--font-display); font-size: clamp(1.3rem, 2.6vw, 1.7rem); color: var(--ink); margin: 0; }
+
+@media (max-width: 820px) {
+  .prova-band,
+  .sobre-split { grid-template-columns: 1fr; }
+  .prova-band-image { min-height: 240px; }
+}
