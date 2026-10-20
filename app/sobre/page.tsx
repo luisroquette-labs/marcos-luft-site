@@ -4,8 +4,9 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import Reveal from "../../components/Reveal";
 import CareerTimeline from "../../components/CareerTimeline";
+import ProvaBand from "../../components/ProvaBand";
 import { BASE } from "../base";
-import { person, trajetoria, formacao } from "../content";
+import { person, trajetoria, formacao, prova } from "../content";
 
 export const metadata: Metadata = {
   title: `Sobre — ${person.name}`,
@@ -14,6 +15,36 @@ export const metadata: Metadata = {
     title: `Sobre — ${person.name}`,
     description: person.thesis,
     images: [{ url: `${BASE}/hero-banner.jpeg` }],
+  },
+};
+
+/**
+ * Splits `person.location` ("Santo Ângelo, RS") into Schema.org's
+ * addressLocality/addressRegion — reads the one value `content.ts` already
+ * has instead of hardcoding the city/state a second time in the JSON-LD below.
+ */
+function splitLocation(location: string): { addressLocality: string; addressRegion: string } {
+  const [addressLocality, addressRegion] = location.split(",").map((part) => part.trim());
+  return { addressLocality, addressRegion };
+}
+
+/**
+ * Person JSON-LD (GEO/SEO — AI Overviews and search engines read this to
+ * resolve who Marcos is and what he does). Every field traces to `person` in
+ * content.ts; no `sameAs` is emitted because no literal LinkedIn/social URL
+ * exists in the source profile (`profile-extraction.md`) — same [SEM DADO]
+ * discipline as `person.whatsapp`'s placeholder note (AD-2: never invent a
+ * link that would read as verified).
+ */
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: person.name,
+  jobTitle: person.role,
+  address: {
+    "@type": "PostalAddress",
+    ...splitLocation(person.location),
+    addressCountry: "BR",
   },
 };
 
@@ -32,6 +63,10 @@ export const metadata: Metadata = {
 export default function SobrePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
       <SiteHeader />
 
       <main>
@@ -54,7 +89,13 @@ export default function SobrePage() {
           <Reveal as="div" className="sobre-split">
             <div className="sobre-split-photo">
               <div className="plate plate--photo">
-                <img src={`${BASE}/headshot.jpeg`} alt={person.name} />
+                {/* .webp (sharp, quality 82) with the original .jpeg as
+                    fallback; intrinsic width/height reserve the layout box
+                    (no CLS). */}
+                <picture>
+                  <source srcSet={`${BASE}/headshot.webp`} type="image/webp" />
+                  <img src={`${BASE}/headshot.jpeg`} alt={person.name} width={400} height={400} loading="lazy" />
+                </picture>
               </div>
             </div>
             <div className="sobre-split-text">
@@ -84,22 +125,13 @@ export default function SobrePage() {
         </div>
       </section>
 
+      {/* PROVA — reusa ProvaBand (mesmo componente/dados da home, 09) em vez
+          de reimplementar a faixa de imagem+credenciais com JSX próprio;
+          evita duas fontes de verdade pro mesmo bloco (CK-4/CK-9). */}
       <section className="section" data-snap>
         <div className="wrap">
-          <Reveal as="div" className="prova-band">
-            <img
-              className="prova-band-image"
-              src={`${BASE}/hero-banner.jpeg`}
-              alt="Marcos Luft em cobertura jornalística"
-            />
-            <div className="prova-band-content">
-              <span className="eyebrow">Em cobertura</span>
-              <h2 className="prova-band-title">Da redação nacional ao plenário da Câmara</h2>
-              <p className="prova-band-framing">
-                A mesma rotina de texto, foto e vídeo sob deadline — aprendida em 14 anos de TV aberta — hoje
-                aplicada à comunicação institucional e à cobertura de eventos.
-              </p>
-            </div>
+          <Reveal>
+            <ProvaBand prova={prova} />
           </Reveal>
         </div>
       </section>

@@ -36,8 +36,22 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   const post = getPost(slug);
   if (!post) notFound();
 
+  // BlogPosting JSON-LD (GEO/SEO) — headline/datePublished/author all come
+  // straight from this post and content.ts's person, nothing invented.
+  const postJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    datePublished: post.date,
+    author: { "@type": "Person", name: person.name },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(postJsonLd) }}
+      />
       <SiteHeader />
       <main>
       <article className="article">

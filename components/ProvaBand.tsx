@@ -14,11 +14,21 @@ type ProvaData = typeof prova;
 export default function ProvaBand({ prova }: { prova: ProvaData }) {
   return (
     <section className="prova-band">
-      <img
-        className="prova-band-image"
-        src={`${BASE}/hero-banner.jpeg`}
-        alt="Marcos Luft em cobertura jornalística"
-      />
+      {/* .webp (sharp, quality 82) with the original .jpeg as fallback for
+          browsers without WebP support — intrinsic width/height reserve the
+          layout box before the image loads (no CLS); it's below the hero,
+          so lazy-loading it costs nothing. */}
+      <picture>
+        <source srcSet={`${BASE}/hero-banner.webp`} type="image/webp" />
+        <img
+          className="prova-band-image"
+          src={`${BASE}/hero-banner.jpeg`}
+          alt="Marcos Luft em cobertura jornalística"
+          width={1400}
+          height={350}
+          loading="lazy"
+        />
+      </picture>
       <div className="prova-band-content">
         <span className="eyebrow">{prova.eyebrow}</span>
         <h2 className="prova-band-title">{prova.title}</h2>

@@ -9,17 +9,34 @@ import { BASE } from "./base";
 // Inter — sans neutra, usada no corpo e nos labels.
 // `variable` nomeia a custom property diretamente como `--font-display`/
 // `--font-sans` para que globals.css nunca precise repetir o nome da fonte.
+//
+// Fraunces é carregada em DUAS chamadas, não uma com style:["normal","italic"]
+// — next/font baixa o produto cartesiano peso×estilo de uma única chamada, e
+// nenhum texto do site usa 600 itálico (grep em globals.css: itálico só
+// aparece em peso 400 — .prova-band-framing — e 500 — .section-head h2 .em).
+// Separar normal (3 pesos) de itálico (2 pesos, sua própria variável) corta
+// esse arquivo nunca usado em vez de baixá-lo por "vir de brinde" no array.
 const display = Fraunces({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  style: ["normal"],
   variable: "--font-display",
   display: "swap",
 });
 
+const displayItalic = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["italic"],
+  variable: "--font-display-italic",
+  display: "swap",
+});
+
+// Inter: peso 700 nunca é usado em globals.css (grep font-weight — só 400
+// implícito, 500 e 600 aparecem), então não é pedido.
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -46,7 +63,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${display.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${display.variable} ${displayItalic.variable} ${inter.variable}`}>
       <body>
         {/* .reveal starts at opacity:0 (globals.css) and only reaches 1 once
             components/Reveal.tsx's IntersectionObserver fires — with JS

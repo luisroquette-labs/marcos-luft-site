@@ -14,10 +14,15 @@ type Recorder = {
   rafCalls: number;
   clearRectCalls: number;
   drawImageCalls: number;
+  cancelCalls: number;
+  /** Fires the most recently constructed IntersectionObserver's callback,
+   *  simulating the canvas entering/leaving the viewport. */
+  fireIntersection: (isIntersecting: boolean) => void;
 };
 
-/** Build a jsdom environment with stubbed canvas/image/rAF and a matchMedia that
- *  reports the given reduced-motion preference. Returns the call recorder. */
+/** Build a jsdom environment with stubbed canvas/image/rAF/IntersectionObserver
+ *  and a matchMedia that reports the given reduced-motion preference. Returns
+ *  the call recorder. */
 function setupEnv(prefersReduced: boolean): Recorder {
   const dom = new JSDOM("<!doctype html><html><body></body></html>", {
     pretendToBeVisual: true,
@@ -25,7 +30,28 @@ function setupEnv(prefersReduced: boolean): Recorder {
   });
   const { window } = dom;
 
-  const rec: Recorder = { rafCalls: 0, clearRectCalls: 0, drawImageCalls: 0 };
+  const rec: Recorder = {
+    rafCalls: 0,
+    clearRectCalls: 0,
+    drawImageCalls: 0,
+    cancelCalls: 0,
+    fireIntersection: () => {
+      throw new Error("fireIntersection called before CrowdCanvas constructed an IntersectionObserver");
+    },
+  };
+
+  // jsdom has no IntersectionObserver; stub one that records its callback so
+  // a test can simulate the canvas entering/leaving the viewport by calling
+  // rec.fireIntersection(isIntersecting) directly.
+  class FakeIntersectionObserver {
+    constructor(private callback: (entries: Array<{ isIntersecting: boolean }>) => void) {
+      rec.fireIntersection = (isIntersecting) => this.callback([{ isIntersecting }]);
+    }
+    observe() {}
+    disconnect() {}
+  }
+  (window as unknown as { IntersectionObserver: unknown }).IntersectionObserver = FakeIntersectionObserver;
+  globalThis.IntersectionObserver = FakeIntersectionObserver as unknown as typeof IntersectionObserver;
 
   const ctxStub = {
     setTransform() {},
@@ -65,7 +91,9 @@ function setupEnv(prefersReduced: boolean): Recorder {
       rec.rafCalls++;
       return 1;
     };
-  (window as unknown as { cancelAnimationFrame: (id: number) => void }).cancelAnimationFrame = () => {};
+  (window as unknown as { cancelAnimationFrame: (id: number) => void }).cancelAnimationFrame = () => {
+    rec.cancelCalls++;
+  };
 
   (window as unknown as { matchMedia: (q: string) => unknown }).matchMedia = (query: string) => ({
     matches: query.includes("reduce") ? prefersReduced : false,
@@ -118,4 +146,23 @@ test("motion allowed → starts the requestAnimationFrame loop", async () => {
   await mount();
 
   assert.ok(rec.rafCalls >= 1, "requestAnimationFrame must be scheduled when motion is allowed");
+});
+
+// REGRESSÃO: CrowdCanvas burned rAF/CPU forever, even scrolled fully out of
+// view — this is the IntersectionObserver pause/resume added to fix that.
+test("leaving the viewport cancels the rAF loop; re-entering restarts it", async () => {
+  const rec = setupEnv(false);
+  await mount();
+
+  const rafCallsOnMount = rec.rafCalls;
+  assert.ok(rafCallsOnMount >= 1, "expected the initial mount to schedule a frame");
+
+  rec.fireIntersection(false);
+  assert.ok(rec.cancelCalls >= 1, "scrolling the canvas out of view must call cancelAnimationFrame");
+
+  rec.fireIntersection(true);
+  assert.ok(
+    rec.rafCalls > rafCallsOnMount,
+    "scrolling the canvas back into view must reschedule requestAnimationFrame",
+  );
 });

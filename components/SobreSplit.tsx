@@ -19,7 +19,12 @@ export default function SobreSplit({
     <section className="sobre-split">
       <div className="sobre-split-photo">
         <div className="plate plate--photo">
-          <img src={`${BASE}/headshot.jpeg`} alt="Marcos Luft" />
+          {/* .webp (sharp, quality 82) with the original .jpeg as fallback;
+              intrinsic width/height reserve the layout box (no CLS). */}
+          <picture>
+            <source srcSet={`${BASE}/headshot.webp`} type="image/webp" />
+            <img src={`${BASE}/headshot.jpeg`} alt="Marcos Luft" width={400} height={400} loading="lazy" />
+          </picture>
         </div>
       </div>
       <div className="sobre-split-text">

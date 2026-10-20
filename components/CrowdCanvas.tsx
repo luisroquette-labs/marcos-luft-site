@@ -98,6 +98,10 @@ export default function CrowdCanvas() {
     const img = new Image();
     let figures: Figure[] = [];
     let raf = 0;
+    // Mirrors out-of-viewport state from the IntersectionObserver below —
+    // read inside `loop` so a frame in flight stops rescheduling itself
+    // instead of fighting the observer over who owns `raf`.
+    let inView = true;
     let lastTime = 0;
     let frameAccMs = 0;
     let globalFrame = 0;
@@ -135,6 +139,10 @@ export default function CrowdCanvas() {
     };
 
     const loop = (time: number) => {
+      if (!inView) {
+        raf = 0; // stop rescheduling; the observer restarts the loop on re-entry
+        return;
+      }
       const dt = Math.min(time - lastTime, 100); // clamp tab-switch jumps
       lastTime = time;
 
@@ -177,9 +185,25 @@ export default function CrowdCanvas() {
     };
     window.addEventListener("resize", onResize);
 
+    // Scroll past the hero and the crowd walk cycle keeps burning rAF/CPU for
+    // a canvas nobody can see — pause it offscreen, same pattern as
+    // Reveal.tsx/StatCounter.tsx's IntersectionObserver, and resume on return.
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      if (!inView) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else if (!reduced && raf === 0) {
+        lastTime = performance.now();
+        raf = requestAnimationFrame(loop);
+      }
+    });
+    io.observe(canvas);
+
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      io.disconnect();
       img.onload = null;
     };
   }, [reduced]);

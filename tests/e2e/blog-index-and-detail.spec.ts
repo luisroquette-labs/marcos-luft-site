@@ -37,9 +37,9 @@ test.describe("blog index lists real posts (CK-5)", () => {
 test.describe("every real route renders distinct content with no error boundary (CK-6)", () => {
   const firstPost = posts[0];
 
-  // /blog's own section heading is an <h2> (see app/blog/page.tsx) — every
-  // other route here leads with an <h1>, so the heading tag is per-route,
-  // not assumed to always be "h1".
+  // Every route here leads with an <h1> — /blog's own section heading was
+  // moved from <h2> to <h1> for a correct document outline (WCAG 1.3.1 +
+  // SEO, see app/blog/page.tsx).
   const routes: Array<{ path: string; heading: "h1" | "h2"; expectedHeading: string | RegExp }> = [
     { path: "/", heading: "h1", expectedHeading: /26 anos contando histórias/ },
     { path: "/sobre", heading: "h1", expectedHeading: "Marcos Luft" },

@@ -6,12 +6,12 @@ Ao vivo: **https://luisroquette-labs.github.io/marcos-luft-site/**
 
 ## Identidade
 
-Estética editorial **ink-on-cream** (fundo creme, tinta quase-preta, serifa de alto contraste Fraunces + Inter). O hero é um **Crowd Canvas** — uma multidão ilustrada que caminha em loop (HTML5 Canvas, `requestAnimationFrame`, sem dependências), metáfora do ofício: alcançar o público. Trajetória em **Pigment Ledger** (wordmarks gigantes dos empregadores com florescimento de aquarela no hover). Tudo respeita `prefers-reduced-motion`.
+Estética editorial **ink-on-cream** (fundo creme, tinta quase-preta, serifa de alto contraste Fraunces + Inter). O hero é um **Crowd Canvas** — uma multidão ilustrada que caminha em loop (HTML5 Canvas, `requestAnimationFrame`, sem dependências, pausado via IntersectionObserver fora da viewport), metáfora do ofício: alcançar o público. Trajetória em **Career Timeline** (marcadores cronológicos com o cargo atual em destaque). Tudo respeita `prefers-reduced-motion`.
 
 ## Stack
 
 - **Next.js** (App Router) com `output: "export"` — site 100% estático.
-- Zero dependência de runtime além de `lenis` (smooth-scroll). Fontes via `next/font` (bundladas).
+- Zero dependência de runtime além de `lenis` (smooth-scroll + snap magnético por seção). Fontes via `next/font` (bundladas).
 - Conteúdo tipado em `app/content.ts` / `app/posts.ts` (fonte única da verdade).
 - Testes: `node:test` (unit/component), Playwright (e2e), scripts de smoke do export.
 
@@ -21,7 +21,7 @@ Estética editorial **ink-on-cream** (fundo creme, tinta quase-preta, serifa de 
 npm install
 npm run dev          # http://localhost:3000
 npm test             # unit + component
-npx playwright test  # e2e
+npm run test:e2e     # e2e (Playwright)
 ```
 
 ## Deploy
@@ -32,8 +32,8 @@ GitHub Pages via GitHub Actions (`.github/workflows/pages.yml`). Todo push em `m
 
 ```
 app/            páginas (home, /servicos, /sobre, /blog, /blog/[slug]) + content.ts/posts.ts + sitemap/robots
-components/     CrowdCanvas, PigmentLedger, FeatureSpotlight, GhostAccordion, EditorialPostCard, ClosingCTA, ProvaBand, SobreSplit, StatCounter…
-public/         imagens, logo, favicon
+components/     CrowdCanvas, CareerTimeline, FeatureSpotlight, GhostAccordion, EditorialPostCard, ClosingCTA, ProvaBand, SobreSplit, StatCounter…
+public/         imagens (jpeg + webp pré-otimizado), logo, favicon
 tests/          unit · component · e2e · smoke
 ```
 
