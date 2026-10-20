@@ -161,10 +161,15 @@
 /* Mobile: no room for 3 columns or a giant serif year — collapse to a
    compact vertical list, left rail doubling as the connecting line. */
 @media (max-width: 560px) {
+  /* Compactado para caber em 100svh no celular (regra de ouro): a lista
+     vertical dos 3 capítulos + o cabeçalho da seção precisam de uma tela só.
+     Paddings/gaps enxutos; o corpo de cada capítulo é limitado a 3 linhas
+     (o texto completo continua em /sobre, na mesma seção, sem corte visual
+     dentro da tela). */
   .track {
     flex-direction: column;
     gap: 0;
-    padding: 1.5rem 0;
+    padding: 0.5rem 0;
   }
 
   .baseline {
@@ -173,7 +178,7 @@
 
   .node {
     height: auto;
-    padding: 0 0 1.75rem 1.4rem;
+    padding: 0 0 1rem 1.2rem;
     border-left: 1px solid var(--ink-hairline);
   }
 
@@ -188,7 +193,7 @@
 
   .dot {
     left: -1px;
-    top: 0.5em;
+    top: 0.4em;
     margin: -5.5px;
   }
 
@@ -201,7 +206,23 @@
   }
 
   .year {
-    font-size: clamp(1.6rem, 6vw, 2rem);
+    font-size: clamp(1.4rem, 5vw, 1.7rem);
+  }
+
+  .employer {
+    margin-top: 0.25rem;
+    font-size: 1.05rem;
+  }
+
+  .body {
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .skills {

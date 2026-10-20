@@ -33,6 +33,13 @@
   --wrap: 1180px;
   --radius: 18px;
   --radius-lg: 26px;
+
+  /* Altura real do header sticky, medida em runtime por components/
+     SmoothScroll.tsx (document.documentElement.style.setProperty). O valor
+     aqui é só o fallback pré-JS / prefers-reduced-motion, casado com a altura
+     declarada de .site-header .wrap (68px). Usado por scroll-margin-top das
+     seções (rede do snap) e pela compensação do snap do Lenis. */
+  --header-h: 68px;
 }
 
 * { box-sizing: border-box; }
@@ -147,7 +154,10 @@ header img { height: 34px; width: auto; }
    ~761px — fully below the fold, failing CK-2's "visible without scrolling"
    requirement by itself, not an artifact of the test. This reclaims the
    ~66px the badge needed, verified back in view with ~24px of margin. */
-.hero { position: relative; min-height: 92vh; display: flex; align-items: center; padding: 24px 0 56px; overflow: hidden; }
+/* Regra de ouro da fábrica: uma seção = uma tela. svh (nunca vh) para não
+   estourar com a barra dinâmica do Safari mobile. 100svh fixo + conteúdo
+   centrado; o snap do Lenis (SmoothScroll.tsx) assenta cada seção no topo. */
+.hero { position: relative; min-height: 100svh; height: 100svh; display: flex; align-items: center; padding: 24px 0 48px; overflow: hidden; }
 .hero-inner {
   position: relative; max-width: 940px; width: 100%;
   background: color-mix(in srgb, var(--cream) 80%, transparent);
@@ -184,7 +194,27 @@ header img { height: 34px; width: auto; }
 .stat-label { font-family: var(--font-ui); font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
 
 /* ---------- seção genérica ---------- */
-.section { padding: 92px 0; position: relative; }
+/* Uma seção = uma tela (regra de ouro da fábrica). Altura trava em 100svh e o
+   conteúdo é centrado verticalmente; nada rola dentro de uma seção. Seções de
+   conteúdo longo genuíno (índice do blog) optam por `.section--flow`, que solta
+   a altura e NÃO recebe data-snap. */
+.section {
+  position: relative;
+  min-height: 100svh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 0;
+  scroll-margin-top: var(--header-h);
+}
+/* Exceção consciente: conteúdo corrido (lista do blog) rola normal. Solta a
+   altura fixa mas mantém o piso de uma tela. Sem data-snap no markup. */
+.section--flow {
+  height: auto;
+  min-height: 100svh;
+  display: block;
+}
 .section-head { max-width: 720px; margin-bottom: 48px; }
 .section-head h2 { font-size: clamp(2rem, 4.6vw, 3.3rem); margin: 18px 0 0; }
 .section-head .lead { margin-top: 18px; }
@@ -239,9 +269,46 @@ header img { height: 34px; width: auto; }
 }
 @media (max-width: 560px) {
   body { font-size: 16px; }
-  .section { padding: 64px 0; }
+  /* Padding enxuto: a seção segue sendo 100svh, mas com menos respiro
+     vertical sobra tela para o conteúdo caber sem rolagem interna no celular
+     (regra de ouro — verificado em 390×844 e 360×800). */
+  .section { padding: 32px 0; }
   .stats-row { grid-template-columns: 1fr 1fr; }
   .header-cta .btn-primary { display: none; }
+
+  /* Hero no mobile: trims para o stack eyebrow+h1+lead+badge+2 CTAs caber em
+     uma tela de celular (Safari real ~650px de svh). */
+  .hero { padding: 16px 0 32px; }
+  .hero-inner { padding: 20px 20px; }
+  .hero h1 { margin-top: 14px; }
+  .hero .lead { margin-top: 16px; font-size: 1.06rem; }
+  .hero-badge { margin-top: 18px; }
+  .hero-ctas { margin-top: 20px; }
+  .chips { margin-top: 14px; }
+
+  /* Trims de "cabe numa tela" no mobile (medido em 390×844 e 360×800, com
+     folga para o svh menor do Safari real). Cada bloco corta respiro, nunca
+     texto, nas seções que estouravam 100svh. */
+  .section-head { margin-bottom: 22px; }
+
+  /* Prova (ProvaBand empilhada): conteúdo e créditos justos. A altura da foto
+     é tratada no bloco 560px do fim do arquivo (ordem de cascata — ver lá). */
+  .prova-band-content { padding: 14px 16px; gap: 6px; }
+  .prova-band-title { font-size: clamp(1.3rem, 5.4vw, 1.7rem); }
+  .prova-band-framing { font-size: 0.96rem; }
+  .prova-credentials { gap: 4px; margin-top: 4px; }
+  .prova-credential { padding: 5px 0; font-size: 0.82rem; }
+
+  /* Sobre-split (/sobre: retrato + bio longa): retrato menor libera a tela. */
+  .sobre-split { gap: 22px; }
+  .plate--photo { width: min(190px, 52vw); }
+  .sobre-split-teaser { font-size: clamp(1.2rem, 5vw, 1.45rem); }
+
+  /* /servicos — fichas densas (1 serviço = 1 tela): leads e escopo compactos.
+     0.95rem (~15px) continua legível; line-height justo faz a ficha mais densa
+     (5 itens de escopo) caber na menor tela testada (360×800). */
+  .section .lead { font-size: 0.95rem; line-height: 1.4; }
+  .formacao-item { padding: 12px 0; }
 }
 
 /* segurança contra overflow horizontal: grid/flex items encolhem, inputs não estouram */
@@ -375,5 +442,14 @@ input[type="range"] { min-width: 0; }
 @media (max-width: 820px) {
   .prova-band,
   .sobre-split { grid-template-columns: 1fr; }
-  .prova-band-image { min-height: 240px; }
+  /* Empilhada, a foto renderiza na proporção nativa (~190px numa coluna
+     estreita) e o antigo min-height nunca entrava; altura fixa a controla. */
+  .prova-band-image { height: 200px; min-height: 0; }
+}
+
+/* Override de ordem: no celular a foto da prova precisa ficar ainda mais
+   baixa para a faixa caber em 100svh. Fica DEPOIS do bloco 820px acima,
+   senão aquele (fonte posterior, mesma especificidade) venceria. */
+@media (max-width: 560px) {
+  .prova-band-image { height: 120px; }
 }

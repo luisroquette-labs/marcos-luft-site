@@ -8,7 +8,7 @@
 // file exercises the whole page render once rather than mounting it
 // repeatedly.
 //
-// The CTA assertion below selects by tag/section (`#servicos article a`),
+// The CTA assertion below selects by tag/section (`#servicos-detalhe article a`),
 // not by CSS Module class name: this loader stubs every `*.module.css`
 // import to `export default {}` (see tsx-loader.mjs), so a class like
 // `styles.cta` resolves to `undefined` at render time — a class-name
@@ -16,7 +16,9 @@
 // Modules, same reason feature-spotlight.test.tsx asserts on `<a>`/`<article>`
 // tags rather than class names. Scoping to `article a` (FeatureSpotlight's
 // own card markup) excludes the home's separate "Ver todos os serviços →"
-// link to /servicos, added in app/page.tsx alongside the services grid.
+// link to /servicos. The services teaser was split into two one-screen
+// sections (regra de ouro): `#servicos` holds the eyebrow/title/lead, and
+// `#servicos-detalhe` holds the FeatureSpotlight carousel + "Ver todos" link.
 //
 // None of Home's child components (StatCounter/Reveal/GhostAccordion/CrowdCanvas)
 // need a jsdom `window` to render their initial markup — hooks simply don't
@@ -81,7 +83,7 @@ test('home page renders a <section id="contato"> that every "#contato" CTA can r
 test("home page renders exactly 4 FeatureSpotlight CTAs with distinct href/label combos (CK-1)", async () => {
   const { servicos } = await loadFixtures();
   const doc = await renderHome();
-  const ctas = Array.from(doc.querySelectorAll("section#servicos article a"));
+  const ctas = Array.from(doc.querySelectorAll("section#servicos-detalhe article a"));
 
   assert.equal(ctas.length, servicos.items.length, `expected exactly ${servicos.items.length} offer CTAs`);
   assert.equal(ctas.length, 4, "the services section must have exactly 4 offers");

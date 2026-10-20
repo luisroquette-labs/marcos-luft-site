@@ -43,7 +43,7 @@ test.describe("every real route renders distinct content with no error boundary 
   const routes: Array<{ path: string; heading: "h1" | "h2"; expectedHeading: string | RegExp }> = [
     { path: "/", heading: "h1", expectedHeading: /26 anos contando histórias/ },
     { path: "/sobre", heading: "h1", expectedHeading: "Marcos Luft" },
-    { path: "/blog", heading: "h2", expectedHeading: /Bastidores da/ },
+    { path: "/blog", heading: "h1", expectedHeading: /Bastidores da/ },
     { path: `/blog/${firstPost.slug}`, heading: "h1", expectedHeading: firstPost.title },
   ];
 

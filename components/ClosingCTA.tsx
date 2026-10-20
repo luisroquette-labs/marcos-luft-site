@@ -34,7 +34,9 @@ export default function ClosingCTA({ heading, note, ctaLabel, ctaHref, marqueePh
   const copy = Array.from({ length: MARQUEE_REPEATS_PER_COPY }, () => marqueePhrase).join(" · ");
 
   return (
-    <section id="contato" className={styles.section}>
+    <section id="contato" className={styles.section} data-snap>
+      {/* data-snap: closing CTA is always a full-screen panel (home + /servicos),
+          so it joins the magnetic snap like every other section. */}
       {/* Decorative background text, not page content — hidden from assistive tech. */}
       <div className={styles.marquee} aria-hidden="true">
         <div className={styles.marqueeTrack}>

@@ -21,4 +21,22 @@ test.describe("reduced motion: reveal sections skip the scroll-triggered fade (C
       expect(opacity).toBe("1");
     }
   });
+
+  // Regra de ouro: the magnetic snap must not fight a visitor who asked for
+  // reduced motion. Lenis never mounts under reduced motion (SmoothScroll.tsx
+  // bails), so the snap effect finds no Lenis instance and never instantiates
+  // either — no inertia, no magnetic pull, native scrolling only.
+  test("Lenis and the snap never instantiate under reduced motion", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await page.waitForTimeout(300); // give any (unwanted) mount a chance to happen
+
+    const state = await page.evaluate(() => ({
+      lenis: (window as unknown as { __lenis?: unknown }).__lenis,
+      snapActive: !!(window as unknown as { lenis?: { snap?: boolean } }).lenis?.snap,
+    }));
+
+    expect(state.lenis, "Lenis must not mount under reduced motion").toBeUndefined();
+    expect(state.snapActive, "snap must not instantiate under reduced motion").toBe(false);
+  });
 });

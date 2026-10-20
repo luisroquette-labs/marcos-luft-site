@@ -3,25 +3,31 @@
    only (reuses the --ink/--cream/--ink-hairline tokens from globals.css;
    AD-1 monochromatic, no second color). */
 
+/* Carrossel horizontal (antes era grade 2×2): com 4 fichas a grade estourava
+   a regra "uma seção = uma tela" no mobile (1906px). Vira uma trilha
+   horizontal com scroll-snap nativo no eixo X — cabe numa tela, o card
+   parcial à direita sinaliza que há mais para o lado. O scroll-snap X é
+   nativo e não briga com o Lenis (o Lenis só controla o eixo Y da página). */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  border-top: 1px solid var(--ink-hairline);
-  border-left: 1px solid var(--ink-hairline);
-}
-
-@media (max-width: 640px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 0 14px;
+  scrollbar-width: thin;
 }
 
 .card {
   position: relative;
   overflow: hidden;
-  padding: 32px 28px;
-  border-right: 1px solid var(--ink-hairline);
-  border-bottom: 1px solid var(--ink-hairline);
+  flex: 0 0 auto;
+  width: min(78%, 340px);
+  scroll-snap-align: start;
+  padding: 28px 26px;
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--radius);
+  background: var(--cream-soft);
   /* Pointer position in card-local px, set via JS on mousemove; defaults to
      the card's own center so the spotlight has a sane position even before
      the first pointer event (e.g. keyboard/touch focus). */

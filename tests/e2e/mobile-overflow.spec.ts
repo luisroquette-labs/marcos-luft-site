@@ -1,46 +1,119 @@
-// CK-14 (e2e): at a genuine 390px mobile width, the services grid, the
-// trajectory timeline, and the FAQ must not overflow horizontally or clip
-// text. A plain viewport resize alone can't be trusted (a stale layout can
-// report an innerWidth that doesn't match what's actually painted), so this
-// also reads document.documentElement.scrollWidth/clientWidth directly from
-// inside that 390px page — the real signal for horizontal overflow.
-import { test, expect, type Page } from "@playwright/test";
+// Regra de ouro da fábrica ("uma seção = uma tela") + CK-14 (no horizontal
+// overflow). Two guarantees, checked at four real viewports:
+//
+//  1. Every snap section (`[data-snap]`) fits one screen: its box is no taller
+//     than the viewport AND its content doesn't overflow it (no internal
+//     vertical scroll). scrollHeight > clientHeight is exactly how "content
+//     spills past one screen" shows up, even though the box height is locked
+//     to 100svh.
+//  2. No horizontal overflow (the original CK-14 signal), read straight from
+//     document.documentElement.scrollWidth vs clientWidth.
+//
+// Plus a snap-behaviour check (desktop): scrolling to a section's registered
+// snap target lands its top exactly under the sticky header — "para certinho
+// no topo de cada seção", header compensado — and same-page header anchors
+// smooth-scroll through Lenis instead of doing a full navigation.
+import { test, expect } from "@playwright/test";
 
-const MOBILE_WIDTH = 390;
+type LenisWindow = {
+  __lenis?: { scrollTo: (target: number, opts?: { immediate?: boolean }) => void };
+  lenis?: { snap?: boolean };
+};
 
-test.use({ viewport: { width: MOBILE_WIDTH, height: 844 } });
+const VIEWPORTS = [
+  { label: "desktop 1440×900", width: 1440, height: 900 },
+  { label: "tablet 768×1024", width: 768, height: 1024 },
+  { label: "mobile 390×844", width: 390, height: 844 },
+  { label: "android 360×800", width: 360, height: 800 },
+];
 
-/** True once the real DOM reports no horizontal scroll at this width. */
-async function hasNoHorizontalOverflow(page: Page): Promise<boolean> {
-  return page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
+// Panel routes only — /blog index and /blog/[slug] are flow pages by design.
+const PANEL_ROUTES = ["/", "/servicos", "/sobre"];
+
+for (const vp of VIEWPORTS) {
+  test.describe(`one section = one screen @ ${vp.label}`, () => {
+    test.use({ viewport: { width: vp.width, height: vp.height } });
+
+    for (const route of PANEL_ROUTES) {
+      test(`${route}: every snap section fits one screen, no internal/horizontal overflow`, async ({ page }) => {
+        await page.goto(route);
+        await page.evaluate(() => document.fonts?.ready);
+
+        const result = await page.evaluate(() => ({
+          innerH: window.innerHeight,
+          xOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          sections: [...document.querySelectorAll<HTMLElement>("[data-snap]")].map((el, i) => ({
+            id: el.id || `snap-${i}`,
+            clientH: el.clientHeight,
+            scrollH: el.scrollHeight,
+          })),
+        }));
+
+        expect(result.sections.length).toBeGreaterThan(0);
+        expect(result.xOverflow, "horizontal overflow (CK-14)").toBeLessThanOrEqual(1);
+
+        for (const section of result.sections) {
+          expect(
+            section.clientH,
+            `${route} #${section.id}: box taller than the ${result.innerH}px viewport`,
+          ).toBeLessThanOrEqual(result.innerH + 1);
+          expect(
+            section.scrollH,
+            `${route} #${section.id}: content overflows its screen (would need internal scroll)`,
+          ).toBeLessThanOrEqual(section.clientH + 2);
+        }
+      });
+    }
+  });
 }
 
-test.describe("mobile 390px: no horizontal overflow (CK-14)", () => {
-  test("document reports the real 390px viewport width", async ({ page }) => {
+test.describe("magnetic snap + anchor smooth-scroll (desktop)", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("snapping to a section lands its top exactly under the sticky header", async ({ page }) => {
     await page.goto("/");
-    const innerWidth = await page.evaluate(() => window.innerWidth);
-    expect(innerWidth).toBe(MOBILE_WIDTH);
-  });
+    await page.evaluate(() => document.fonts?.ready);
+    // Lenis + snap mount in a useEffect a beat after first paint — wait for
+    // the instance before driving it (same guard as conversion-flow.spec.ts).
+    await page.waitForFunction(() => Boolean((window as unknown as LenisWindow).__lenis));
 
-  test("page has no horizontal overflow at 390px", async ({ page }) => {
-    await page.goto("/");
-    expect(await hasNoHorizontalOverflow(page)).toBe(true);
-  });
-
-  for (const sectionId of ["servicos", "trajetoria", "faq"]) {
-    test(`#${sectionId} fits inside the 390px viewport with no clipped text`, async ({ page }) => {
-      await page.goto("/");
-      const section = page.locator(`#${sectionId}`);
-      await section.scrollIntoViewIfNeeded();
-
-      const box = await section.boundingBox();
-      expect(box).not.toBeNull();
-      // A section wider than the viewport is exactly how clipped/overflowing
-      // text shows up at this width — the box's right edge must stay inside
-      // the 390px frame, not just its left edge at 0.
-      expect(box!.x + box!.width).toBeLessThanOrEqual(MOBILE_WIDTH + 1); // +1px rounding slack
-
-      expect(await hasNoHorizontalOverflow(page)).toBe(true);
+    const res = await page.evaluate(async () => {
+      const win = window as unknown as LenisWindow;
+      const headerH = document.querySelector<HTMLElement>(".site-header")!.offsetHeight;
+      const el = document.querySelector<HTMLElement>("#faq-1")!;
+      const absTop = el.getBoundingClientRect().top + window.scrollY;
+      // Scroll to the exact value the snap registers for this section.
+      win.__lenis!.scrollTo(absTop - headerH, { immediate: true });
+      await new Promise((r) => setTimeout(r, 150));
+      return {
+        headerH,
+        top: Math.round(el.getBoundingClientRect().top),
+        snapActive: !!(win.lenis && win.lenis.snap),
+      };
     });
-  }
+
+    expect(res.snapActive, "lenis/snap should be instantiated on a panel page").toBe(true);
+    // The section top sits ~headerH below the viewport top — not under the
+    // header (0), not overshot — i.e. "para certinho no topo da seção".
+    expect(Math.abs(res.top - res.headerH)).toBeLessThanOrEqual(2);
+  });
+
+  test("a same-page header #anchor smooth-scrolls via Lenis, with no full navigation", async ({ page }) => {
+    await page.goto("/");
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    await page.click('a[href$="#trajetoria"]');
+    await page.waitForFunction(() => window.scrollY > 200);
+
+    // Lenis drove the scroll (scrollTo takes a pixel value) — it never pushes a
+    // "#trajetoria" hash onto the URL, which a native hash jump would.
+    expect(page.url()).not.toContain("#");
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(200);
+  });
+});
+
+test("/blog index is a flow page: no snap sections at all", async ({ page }) => {
+  await page.goto("/blog");
+  const count = await page.evaluate(() => document.querySelectorAll("[data-snap]").length);
+  expect(count).toBe(0);
 });

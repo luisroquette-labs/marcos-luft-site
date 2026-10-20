@@ -35,7 +35,7 @@ export default function SobrePage() {
       <SiteHeader />
 
       <main>
-      <section className="section" style={{ paddingTop: 64, paddingBottom: 32 }}>
+      <section className="section" data-snap style={{ paddingTop: 64, paddingBottom: 32 }}>
         <div className="wrap">
           <Reveal>
             <span className="eyebrow">{person.role}</span>
@@ -49,7 +49,7 @@ export default function SobrePage() {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section" data-snap style={{ paddingTop: 0 }}>
         <div className="wrap">
           <Reveal as="div" className="sobre-split">
             <div className="sobre-split-photo">
@@ -74,7 +74,7 @@ export default function SobrePage() {
         </div>
       </section>
 
-      <section className="section" id="trajetoria-completa">
+      <section className="section" id="trajetoria-completa" data-snap>
         <div className="wrap">
           <Reveal as="div" className="section-head">
             <span className="eyebrow">{trajetoria.eyebrow}</span>
@@ -84,7 +84,7 @@ export default function SobrePage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" data-snap>
         <div className="wrap">
           <Reveal as="div" className="prova-band">
             <img
@@ -104,7 +104,7 @@ export default function SobrePage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" data-snap>
         <div className="wrap">
           <Reveal as="div" className="section-head">
             <span className="eyebrow">{formacao.eyebrow}</span>
@@ -120,7 +120,7 @@ export default function SobrePage() {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section" data-snap style={{ paddingTop: 0 }}>
         <div className="wrap" style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
           <p className="lead" style={{ margin: 0 }}>
             Precisa de assessoria de imprensa ou comunicação institucional?

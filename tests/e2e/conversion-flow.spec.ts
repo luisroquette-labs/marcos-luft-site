@@ -26,11 +26,12 @@ test.describe("conversion flow: service CTA -> #contato (CK-1)", () => {
     // so this exercises the app's steady-state interactive behavior.
     await page.waitForFunction(() => Boolean((window as unknown as { __lenis?: unknown }).__lenis));
 
-    // Scoped to #servicos so this click hits a FeatureSpotlight card's own
-    // CTA, not the hero's "Solicitar diagnóstico" CTA (same target anchor,
-    // different section — both are real content.ts hrefs, not a shared
-    // placeholder).
-    const serviceCta = page.locator('#servicos a[href="#contato"]').first();
+    // Scoped to #servicos-detalhe (the FeatureSpotlight carousel's section
+    // after the services teaser was split into two one-screen sections — see
+    // app/page.tsx) so this click hits a service card's own CTA, not the
+    // hero's "Solicitar diagnóstico" CTA (same target anchor, different
+    // section — both are real content.ts hrefs, not a shared placeholder).
+    const serviceCta = page.locator('#servicos-detalhe a[href="#contato"]').first();
     await expect(serviceCta).toBeVisible();
     await serviceCta.click();
 

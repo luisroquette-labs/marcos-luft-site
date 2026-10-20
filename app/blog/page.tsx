@@ -25,7 +25,11 @@ export default function BlogIndex() {
     <>
       <SiteHeader />
       <main>
-      <section className="section" style={{ paddingTop: 64 }}>
+      {/* site10x: seção rolável por necessidade — o índice do blog é uma lista
+          longa (conteúdo corrido), exceção explícita à regra "uma tela". Sem
+          data-snap: o SmoothScroll não instancia snap em páginas sem seções
+          snapáveis, então /blog rola normal. */}
+      <section className="section section--flow" style={{ paddingTop: 64 }}>
         <div className="wrap">
           <Reveal className="section-head" >
             <span className="eyebrow">Blog</span>

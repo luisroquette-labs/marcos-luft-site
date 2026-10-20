@@ -34,14 +34,15 @@ export default function ServicosPage() {
       <SiteHeader />
 
       <main>
-      <section className="section" style={{ paddingTop: 64, paddingBottom: 0 }}>
+      {/* Tela de abertura: eyebrow + título + lead + competências. */}
+      <section className="section" data-snap>
         <div className="wrap">
           <Reveal className="section-head">
             <span className="eyebrow">{servicos.eyebrow}</span>
             <h1 style={{ fontSize: "clamp(2.4rem, 5.6vw, 4rem)", marginTop: 18 }}>{servicos.title}</h1>
             <p className="lead" style={{ marginTop: 18, maxWidth: "none" }}>{servicos.lead}</p>
           </Reveal>
-          <Reveal as="div" className="chips" style={{ marginTop: 8 }}>
+          <Reveal as="div" className="chips" style={{ marginTop: 20 }}>
             {competencias.map((item) => (
               <span key={item} className="chip">
                 {item}
@@ -51,22 +52,16 @@ export default function ServicosPage() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="wrap">
-          {servicos.items.map((item, index) => (
-            <Reveal
-              key={item.title}
-              as="div"
-              style={{
-                borderTop: index === 0 ? "none" : "1px solid var(--ink-hairline)",
-                paddingTop: index === 0 ? 0 : 40,
-                paddingBottom: 40,
-              }}
-            >
+      {/* OPÇÃO A (decisão do dono): 1 serviço = 1 tela. Cada ficha é uma seção
+          snap própria, com o escopo completo centrado verticalmente. */}
+      {servicos.items.map((item, index) => (
+        <section className="section" key={item.title} data-snap>
+          <div className="wrap">
+            <Reveal as="div">
               {/* <article> keeps each service a self-contained, addressable
                   unit — same semantic role FeatureSpotlight's cards play on
-                  the home — so tests can count services independently of
-                  the Reveal wrapper's div/section choice. */}
+                  the home — so tests can count services independently of the
+                  Reveal wrapper's div/section choice. */}
               <article>
                 <span className="eyebrow">{`0${index + 1}`}</span>
                 <h2 style={{ marginTop: 14 }}>{item.title}</h2>
@@ -88,9 +83,9 @@ export default function ServicosPage() {
                 </a>
               </article>
             </Reveal>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      ))}
 
       <Reveal as="div">
         <ClosingCTA

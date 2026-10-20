@@ -31,7 +31,7 @@ export default function Home() {
           (CK-2) fica dentro do bloco de texto, visualmente distinto do
           cargo atual na trajetória (seção 6, segundo lugar onde CK-2 se
           repete). */}
-      <section className="hero" id="inicio">
+      <section className="hero" id="inicio" data-snap>
         <CrowdCanvas />
         <div className="wrap hero-inner">
           <p className="eyebrow">{hero.eyebrow}</p>
@@ -52,7 +52,7 @@ export default function Home() {
 
       {/* STATS — count-up (StatCounter já lê prefers-reduced-motion) dentro
           de Reveal para o scroll-in (CK-10, CK-13). */}
-      <section className="section" id="stats">
+      <section className="section" id="stats" data-snap>
         <div className="wrap">
           <Reveal>
             <div className="stats-row">
@@ -64,30 +64,37 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SERVIÇOS — exatamente 4 fichas via FeatureSpotlight, cada uma com
-          seu próprio CTA (CK-1); a grade é renderizada pelo próprio
-          componente (ver FeatureSpotlight.tsx). */}
-      <section className="section" id="servicos">
+      {/* SERVIÇOS — tela 1: eyebrow + título + lead. O conteúdo denso (4 fichas)
+          não cabe junto do cabeçalho numa única tela (regra de ouro), então a
+          seção foi partida em duas: esta abre o assunto, a próxima mostra as
+          fichas em carrossel. */}
+      <section className="section" id="servicos" data-snap>
         <div className="wrap">
-          <div className="section-head">
+          <div className="section-head" style={{ marginBottom: 0 }}>
             <span className="eyebrow">{servicos.eyebrow}</span>
             <h2>{servicos.title}</h2>
             <p className="lead">{servicos.lead}</p>
           </div>
+        </div>
+      </section>
+
+      {/* SERVIÇOS — tela 2: as 4 fichas via FeatureSpotlight, agora em carrossel
+          horizontal (scroll-snap x) para caber numa tela, cada uma com seu
+          próprio CTA (CK-1). Competências (perfil §1/§3) e o link para a página
+          aprofundada fecham a tela. */}
+      <section className="section" id="servicos-detalhe" data-snap>
+        <div className="wrap">
           <Reveal>
             <FeatureSpotlight items={servicos.items} />
           </Reveal>
-          {/* Competências — resumo técnico (perfil §1/§3) entre os cartões de
-              serviço e o link para a página aprofundada, cada um com seu
-              próprio escopo defensável (CK-1 em app/servicos/page.tsx). */}
-          <Reveal as="div" className="chips" style={{ marginTop: 28 }}>
+          <Reveal as="div" className="chips" style={{ marginTop: 24 }}>
             {competencias.map((item) => (
               <span key={item} className="chip">
                 {item}
               </span>
             ))}
           </Reveal>
-          <p style={{ marginTop: 24 }}>
+          <p style={{ marginTop: 22 }}>
             <Link href="/servicos" className="btn btn-ghost">
               Ver todos os serviços →
             </Link>
@@ -99,7 +106,7 @@ export default function Home() {
           credenciais (JN, Globo Repórter, Jornal do Almoço, RBS Notícias —
           CK-4) e embute hero-banner.jpeg (CK-9); nunca duplicar o cabeçalho
           aqui fora. */}
-      <section className="section" id="prova">
+      <section className="section" id="prova" data-snap>
         <div className="wrap">
           <Reveal>
             <ProvaBand prova={prova} />
@@ -110,9 +117,9 @@ export default function Home() {
       {/* TRAJETÓRIA — 3 entradas em ordem ascendente por startDate; o item
           `current` ganha marcação visual própria dentro de CareerTimeline
           (CK-2/CK-3). */}
-      <section className="section" id="trajetoria">
+      <section className="section" id="trajetoria" data-snap>
         <div className="wrap">
-          <div className="section-head">
+          <div className="section-head" style={{ marginBottom: 24 }}>
             <span className="eyebrow">{trajetoria.eyebrow}</span>
             <h2>{trajetoria.title}</h2>
           </div>
@@ -122,7 +129,7 @@ export default function Home() {
 
       {/* SOBRE teaser — retrato emoldurado (headshot.jpeg, CK-9) + chamada +
           link para /sobre; SobreSplit é auto-contido. */}
-      <section className="section" id="sobre">
+      <section className="section" id="sobre" data-snap>
         <div className="wrap">
           <Reveal>
             <SobreSplit teaser={person.thesis} />
@@ -132,7 +139,7 @@ export default function Home() {
 
       {/* BLOG teaser — os 3 artigos do profile §7, mesma grade/card já usados
           no blog cheio (CK-5). */}
-      <section className="section" id="blog">
+      <section className="section" id="blog" data-snap>
         <div className="wrap">
           <div className="section-head">
             <span className="eyebrow">Blog</span>
@@ -148,15 +155,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ — as 8 perguntas reais do perfil §6 (CK-10 exige ≥3). */}
-      <section className="section" id="faq">
+      {/* FAQ — as 8 perguntas reais do perfil §6 (CK-10 exige ≥3). Partidas em
+          duas telas de 4 (regra de ouro: 8 perguntas abertas não cabem numa
+          única tela). Só o array é fatiado aqui; o GhostAccordion é intacto. */}
+      <section className="section" id="faq-1" data-snap>
         <div className="wrap">
           <div className="section-head">
             <span className="eyebrow">FAQ</span>
             <h2>Perguntas frequentes</h2>
           </div>
           <Reveal>
-            <GhostAccordion items={faq.items} />
+            <GhostAccordion items={faq.items.slice(0, 4)} />
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="section" id="faq-2" data-snap>
+        <div className="wrap">
+          <div className="section-head">
+            <span className="eyebrow">FAQ</span>
+            <h2>Perguntas frequentes — continuação</h2>
+          </div>
+          <Reveal>
+            <GhostAccordion items={faq.items.slice(4)} />
           </Reveal>
         </div>
       </section>
@@ -164,7 +185,7 @@ export default function Home() {
       {/* FORMAÇÃO — status renderizado exatamente como vem de content.ts;
           nunca hardcoded "concluído" perto da graduação em Jornalismo
           (CK-12). */}
-      <section className="section" id="formacao">
+      <section className="section" id="formacao" data-snap>
         <div className="wrap">
           <div className="section-head">
             <span className="eyebrow">{formacao.eyebrow}</span>
