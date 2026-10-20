@@ -33,6 +33,17 @@ export default function SiteFooter() {
           <span>
             © {person.year} {person.name}. Todos os direitos reservados.
           </span>
+          {/* Atribuição exigida pela licença do sprite da multidão. */}
+          <span className="footer-credit">
+            Ilustração da multidão:{" "}
+            <a href="https://www.openpeeps.com" target="_blank" rel="noopener noreferrer">
+              Open Peeps
+            </a>{" "}
+            · animação adaptada do{" "}
+            <a href="https://skiper-ui.com" target="_blank" rel="noopener noreferrer">
+              Skiper UI
+            </a>
+          </span>
         </div>
       </div>
     </footer>

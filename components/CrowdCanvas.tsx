@@ -1,36 +1,49 @@
 "use client";
 
-// Sprite asset: OWN self-produced fallback (AD-2), NOT the vendor sheet.
-// The skiper39 reference (reuno-ui/skiper39, fetched via 21st MCP get_component)
-// ships an OpenPeeps sheet under Skiper UI's "attribution-required" free-tier terms
-// — not cleanly reusable for a commercial client site — so per AD-2 it is not shipped.
-// public/crowd-sprite.png is a procedurally generated ink-silhouette walk cycle
-// (8 frames, flat #1b1813 on transparent). Motion is reimplemented in vanilla
-// requestAnimationFrame (no GSAP): frame-index advance + x-translate + edge-wrap.
+// Canvas crowd — a faithful rAF port of reuno-ui/skiper39 ("Canvas Crowd").
+// Sprite: public/crowd-sprite.png — the real OpenPeeps sheet shipped by skiper39,
+// 3600×2268, a 15×7 grid of 105 bust/portrait line-art characters (cell 240×324,
+// black ink on transparent). Credit lives in SiteFooter.tsx (license requires it).
+//
+// skiper39 drives this with GSAP; here it is reimplemented in vanilla
+// requestAnimationFrame (no GSAP), preserving the same behaviour: each peep is a
+// random grid cell that walks across the stage (X, ~10s linear, random timeScale
+// 0.5–1.5) while bobbing in Y (sine, ±10px, ~0.25s half-cycle); random direction
+// flips scaleX; a random depth offsetY scatters them vertically; peeps are drawn
+// back-to-front (sorted by baseline) so lower ones overlap higher ones; on exit a
+// peep is recycled back into the pool and re-enters from the far edge.
+//
+// Ink-on-cream: the canvas is transparent and the hero section is cream. The
+// OpenPeeps line-art has white interior fills, so the <canvas> uses
+// mix-blend-mode:multiply — white multiplies to the cream behind it (vanishes),
+// black ink stays. No per-pixel work, no extra ctx calls.
 
 import { useEffect, useRef, useState } from "react";
 import { BASE } from "../app/base.ts";
 
 const INK = "#1b1813";
-const FRAMES = 8;
-const FRAME_W = 48;
-const FRAME_H = 96;
-const FRAME_INTERVAL_MS = 110; // walk-cycle frame advance cadence
 
-// 3 depth bands → cheap parallax: farther figures are smaller, slower, higher up.
-const BANDS = [
-  { scale: 0.55, speed: 18, baselineFrac: 0.6, count: 3 },
-  { scale: 0.78, speed: 30, baselineFrac: 0.78, count: 3 },
-  { scale: 1.0, speed: 46, baselineFrac: 0.95, count: 3 },
-] as const;
+// Sprite grid: 15 columns × 7 rows = 105 characters, each cell 240×324 px.
+const COLS = 15;
+const ROWS = 7;
+const CELL_W = 240;
+const CELL_H = 324;
 
-type Figure = {
-  x: number;
-  baselineY: number;
-  scale: number;
-  speed: number;
-  dir: 1 | -1;
-  frameOffset: number;
+const WALK_BASE_MS = 10_000; // full edge-to-edge crossing at timeScale 1
+const BOB_AMPLITUDE = 10; // px of vertical bob while walking
+const BOB_HALF_CYCLE_MS = 250; // up in 0.25s, down in 0.25s (skiper39 yoyo 0.25)
+
+type Peep = {
+  col: number; // sprite grid cell
+  row: number;
+  dir: 1 | -1; // 1 = walks right, -1 = walks left (scaleX flip)
+  renderW: number;
+  renderH: number;
+  startX: number;
+  endX: number;
+  baseY: number; // top edge at rest (before bob), includes depth offsetY
+  timeScale: number; // 0.5–1.5 → faster/slower walk
+  elapsedMs: number; // progress along the current crossing
 };
 
 /** Deterministic PRNG (mulberry32) so the crowd layout is stable per render. */
@@ -45,26 +58,48 @@ function makeRng(seed: number): () => number {
   };
 }
 
-/** Lay out the crowd across depth bands, evenly spread so the first frame is populated. */
-function buildFigures(width: number, height: number): Figure[] {
-  const rng = makeRng(0x9e3779b1);
-  const figures: Figure[] = [];
+/** How many peeps fill a stage of this width — a modest, legible crowd. */
+function crowdSize(width: number): number {
+  return Math.max(10, Math.min(22, Math.round(width / 110)));
+}
 
-  for (const band of BANDS) {
-    const baselineY = height * band.baselineFrac;
-    for (let i = 0; i < band.count; i++) {
-      const slot = (i + rng() * 0.6) / band.count;
-      figures.push({
-        x: slot * width,
-        baselineY,
-        scale: band.scale,
-        speed: band.speed * (0.85 + rng() * 0.3),
-        dir: rng() > 0.5 ? 1 : -1,
-        frameOffset: Math.floor(rng() * FRAMES),
-      });
-    }
+/**
+ * Configure a peep for one crossing: new random cell, direction, depth and speed.
+ * `offsetY = 100 - 250 * e²` (skiper39's easeInPow2 depth) scatters peeps from the
+ * foreground (lower, larger) to the background (higher, smaller); the same depth
+ * drives a subtle size falloff. `atRandomX` seeds the initial fill so the first
+ * painted frame is already populated instead of empty at the edge.
+ */
+function placePeep(peep: Peep, rng: () => number, width: number, height: number, atRandomX: boolean): void {
+  const e = rng();
+  const offsetY = 100 - 250 * e * e;
+  const scale = (0.82 + 0.18 * (1 - e)) * Math.min(height * 0.62, 340) / CELL_H;
+
+  peep.col = Math.floor(rng() * COLS);
+  peep.row = Math.floor(rng() * ROWS);
+  peep.dir = rng() > 0.5 ? 1 : -1;
+  peep.renderH = CELL_H * scale;
+  peep.renderW = CELL_W * scale;
+  peep.baseY = height - peep.renderH + offsetY;
+  peep.timeScale = 0.5 + rng();
+  peep.startX = peep.dir === 1 ? -peep.renderW : width;
+  peep.endX = peep.dir === 1 ? width : -peep.renderW;
+
+  const totalMs = WALK_BASE_MS / peep.timeScale;
+  peep.elapsedMs = atRandomX ? rng() * totalMs : 0;
+}
+
+/** Build a freshly scattered crowd spread across the whole stage. */
+function buildCrowd(width: number, height: number): Peep[] {
+  const rng = makeRng(0x9e3779b1);
+  const peeps: Peep[] = [];
+  const count = crowdSize(width);
+  for (let i = 0; i < count; i++) {
+    const peep = {} as Peep;
+    placePeep(peep, rng, width, height, true);
+    peeps.push(peep);
   }
-  return figures;
+  return peeps;
 }
 
 export default function CrowdCanvas() {
@@ -96,15 +131,14 @@ export default function CrowdCanvas() {
     if (!ctx) return;
 
     const img = new Image();
-    let figures: Figure[] = [];
+    const rng = makeRng(0x1234abcd); // drives recycling once the loop is running
+    let peeps: Peep[] = [];
     let raf = 0;
     // Mirrors out-of-viewport state from the IntersectionObserver below —
     // read inside `loop` so a frame in flight stops rescheduling itself
     // instead of fighting the observer over who owns `raf`.
     let inView = true;
     let lastTime = 0;
-    let frameAccMs = 0;
-    let globalFrame = 0;
     let width = 0;
     let height = 0;
 
@@ -117,25 +151,38 @@ export default function CrowdCanvas() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
-    const drawFigure = (fig: Figure) => {
-      const sx = ((globalFrame + fig.frameOffset) % FRAMES) * FRAME_W;
-      const dw = FRAME_W * fig.scale;
-      const dh = FRAME_H * fig.scale;
-      const dy = fig.baselineY - dh;
-      if (fig.dir === -1) {
+    const drawPeep = (peep: Peep, x: number, y: number) => {
+      const sx = peep.col * CELL_W;
+      const sy = peep.row * CELL_H;
+      if (peep.dir === -1) {
         ctx.save();
-        ctx.translate(fig.x + dw, dy);
+        ctx.translate(x + peep.renderW, y);
         ctx.scale(-1, 1);
-        ctx.drawImage(img, sx, 0, FRAME_W, FRAME_H, 0, 0, dw, dh);
+        ctx.drawImage(img, sx, sy, CELL_W, CELL_H, 0, 0, peep.renderW, peep.renderH);
         ctx.restore();
       } else {
-        ctx.drawImage(img, sx, 0, FRAME_W, FRAME_H, fig.x, dy, dw, dh);
+        ctx.drawImage(img, sx, sy, CELL_W, CELL_H, x, y, peep.renderW, peep.renderH);
       }
+    };
+
+    /** X along the current crossing (linear), plus the sine bob on Y. */
+    const positionOf = (peep: Peep): { x: number; y: number } => {
+      const totalMs = WALK_BASE_MS / peep.timeScale;
+      const t = Math.min(peep.elapsedMs / totalMs, 1);
+      const x = peep.startX + (peep.endX - peep.startX) * t;
+      const bob = Math.sin((peep.elapsedMs / BOB_HALF_CYCLE_MS) * Math.PI) * BOB_AMPLITUDE;
+      return { x, y: peep.baseY + bob };
     };
 
     const renderFrame = () => {
       ctx.clearRect(0, 0, width, height);
-      for (const fig of figures) drawFigure(fig);
+      // Back-to-front: smaller baseY (further up/back) first, so lower (nearer)
+      // peeps are drawn last and overlap on top.
+      const ordered = [...peeps].sort((a, b) => a.baseY - b.baseY);
+      for (const peep of ordered) {
+        const { x, y } = positionOf(peep);
+        drawPeep(peep, x, y);
+      }
     };
 
     const loop = (time: number) => {
@@ -146,17 +193,10 @@ export default function CrowdCanvas() {
       const dt = Math.min(time - lastTime, 100); // clamp tab-switch jumps
       lastTime = time;
 
-      frameAccMs += dt;
-      if (frameAccMs >= FRAME_INTERVAL_MS) {
-        globalFrame = (globalFrame + Math.floor(frameAccMs / FRAME_INTERVAL_MS)) % FRAMES;
-        frameAccMs %= FRAME_INTERVAL_MS;
-      }
-
-      for (const fig of figures) {
-        fig.x += (fig.speed * fig.dir * dt) / 1000;
-        const dw = FRAME_W * fig.scale;
-        if (fig.dir === 1 && fig.x > width) fig.x = -dw;
-        else if (fig.dir === -1 && fig.x < -dw) fig.x = width;
+      for (const peep of peeps) {
+        peep.elapsedMs += dt * peep.timeScale;
+        const totalMs = WALK_BASE_MS / peep.timeScale;
+        if (peep.elapsedMs >= totalMs) placePeep(peep, rng, width, height, false); // recycle
       }
 
       renderFrame();
@@ -165,7 +205,7 @@ export default function CrowdCanvas() {
 
     const start = () => {
       sizeCanvas();
-      figures = buildFigures(width, height);
+      peeps = buildCrowd(width, height);
       if (reduced) {
         renderFrame(); // single static frame; loop never starts
         return;
@@ -180,7 +220,7 @@ export default function CrowdCanvas() {
     const onResize = () => {
       if (!img.complete) return;
       sizeCanvas();
-      figures = buildFigures(width, height);
+      peeps = buildCrowd(width, height);
       if (reduced) renderFrame();
     };
     window.addEventListener("resize", onResize);
@@ -212,7 +252,17 @@ export default function CrowdCanvas() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "transparent", color: INK }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        background: "transparent",
+        // White interior fills of the OpenPeeps art multiply away into the cream
+        // section behind; the black ink line-art survives. Ink-on-cream.
+        mixBlendMode: "multiply",
+        color: INK,
+      }}
     />
   );
 }

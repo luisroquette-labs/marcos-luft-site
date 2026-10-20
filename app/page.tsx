@@ -2,6 +2,7 @@ import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import CrowdCanvas from "../components/CrowdCanvas";
+import VideoShowcase from "../components/VideoShowcase";
 import StatCounter from "../components/StatCounter";
 import Reveal from "../components/Reveal";
 import GhostAccordion from "../components/GhostAccordion";
@@ -49,6 +50,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* VÍDEO — showcase de motion design em tela cheia, dentro de uma moldura
+          ink-on-cream. Autoplay mudo só na viewport + botão de som; respeita
+          prefers-reduced-motion. VideoShowcase é auto-contido (traz seu próprio
+          id="video" + data-snap). */}
+      <VideoShowcase />
 
       {/* STATS — count-up (StatCounter já lê prefers-reduced-motion) dentro
           de Reveal para o scroll-in (CK-10, CK-13). */}

@@ -252,7 +252,7 @@ header img { height: 34px; width: auto; }
 .footer-col h4 { font-family: var(--font-ui); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin: 0 0 16px; font-weight: 600; }
 .footer-col a { display: block; color: var(--ink-dim); font-size: 0.94rem; margin-bottom: 10px; }
 .footer-col a:hover { color: var(--ink); }
-.footer-bottom { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--line); font-family: var(--font-ui); font-size: 0.78rem; color: var(--faint); }
+.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--line); font-family: var(--font-ui); font-size: 0.78rem; color: var(--faint); }
 
 
 /* ---------- reveal ---------- */
@@ -453,3 +453,57 @@ input[type="range"] { min-width: 0; }
 @media (max-width: 560px) {
   .prova-band-image { height: 120px; }
 }
+
+/* ── Video showcase ───────────────────────────────────────────────────────
+   Full-screen motion-design section: heading + a framed video, centered inside
+   one viewport (regra de ouro). Ink-on-cream rounded frame with a light shadow.
+   Orientation-aware aspect so the frame matches whichever <source> the browser
+   picks (16:9 landscape, 9:16 portrait). */
+.video-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(20px, 3vh, 36px);
+  text-align: center;
+}
+.video-frame {
+  position: relative;
+  width: min(960px, 92vw);
+  max-height: 64svh;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--ink);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--cream-soft);
+  box-shadow: 0 24px 60px -30px rgba(27, 24, 19, 0.45);
+}
+.video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.video-sound {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: color-mix(in srgb, var(--cream) 85%, transparent);
+  color: var(--ink);
+  cursor: pointer;
+}
+.video-sound:hover { background: var(--cream); }
+
+@media (max-width: 560px) {
+  .video-frame { aspect-ratio: 9 / 16; width: auto; max-height: 68svh; }
+}
+
+/* Footer attribution for the crowd sprite (license required). */
+.footer-credit { font-size: 0.72rem; color: var(--faint); }
+.footer-credit a { color: var(--ink-soft); text-decoration: underline; text-underline-offset: 2px; }
+.footer-credit a:hover { color: var(--ink); }
