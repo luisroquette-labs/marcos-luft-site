@@ -110,9 +110,8 @@ export default function Home() {
       </section>
 
       {/* PROVA — ProvaBand já renderiza seu próprio eyebrow/título/framing/
-          credenciais (JN, Globo Repórter, Jornal do Almoço, RBS Notícias —
-          CK-4) e embute hero-banner.jpeg (CK-9); nunca duplicar o cabeçalho
-          aqui fora. */}
+          credenciais (prova.items, CK-4) e embute hero-banner.jpeg (CK-9);
+          nunca duplicar o cabeçalho aqui fora. */}
       <section className="section" id="prova" data-snap>
         <div className="wrap">
           <Reveal>

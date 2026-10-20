@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BASE } from "../app/base";
+import { person } from "../app/content";
 
 /**
  * Seção "Sobre" teaser da home (hero-05-style left-tagline/right-headline
@@ -23,7 +24,7 @@ export default function SobreSplit({
               intrinsic width/height reserve the layout box (no CLS). */}
           <picture>
             <source srcSet={`${BASE}/headshot.webp`} type="image/webp" />
-            <img src={`${BASE}/headshot.jpeg`} alt="Marcos Luft" width={400} height={400} loading="lazy" />
+            <img src={`${BASE}/headshot.jpeg`} alt={person.name} width={400} height={400} loading="lazy" />
           </picture>
         </div>
       </div>

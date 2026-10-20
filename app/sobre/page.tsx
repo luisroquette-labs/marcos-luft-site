@@ -6,7 +6,7 @@ import Reveal from "../../components/Reveal";
 import CareerTimeline from "../../components/CareerTimeline";
 import ProvaBand from "../../components/ProvaBand";
 import { BASE } from "../base";
-import { person, trajetoria, formacao, prova } from "../content";
+import { person, trajetoria, formacao, prova, sobre } from "../content";
 
 export const metadata: Metadata = {
   title: `Sobre — ${person.name}`,
@@ -99,17 +99,12 @@ export default function SobrePage() {
               </div>
             </div>
             <div className="sobre-split-text">
-              <p className="sobre-split-teaser">
-                26 anos entre os dois lados da notícia: da câmera da Rede Globo/RBS TV à comunicação
-                institucional pública.
-              </p>
-              <p className="lead" style={{ maxWidth: "none" }}>
-                Catorze deles operando câmera e locução na RBS TV, afiliada Rede Globo, contribuindo com
-                reportagens para o Jornal Nacional, o Globo Repórter, o Jornal do Almoço e o RBS Notícias;
-                outros sete, à frente do microfone na Rádio Novos Horizontes, em Santo Ângelo/RS. Desde 2017,
-                aplica essa vivência de redação à comunicação institucional pública na Câmara de Vereadores
-                de Santo Ângelo — hoje como Especialista em Comunicação de Marketing em tempo integral.
-              </p>
+              <p className="sobre-split-teaser">{sobre.teaser}</p>
+              {sobre.bio.map((paragraph) => (
+                <p key={paragraph} className="lead" style={{ maxWidth: "none" }}>
+                  {paragraph}
+                </p>
+              ))}
             </div>
           </Reveal>
         </div>

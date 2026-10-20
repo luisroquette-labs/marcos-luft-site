@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "../components/SmoothScroll";
 import { BASE } from "./base";
+import { seo } from "./content";
 
 // Identidade editorial ink-on-cream (AD-1):
 // Fraunces — serif display de alto contraste, usada nos títulos.
@@ -48,13 +49,11 @@ const SITE_URL = "https://luisroquette-labs.github.io/marcos-luft-site/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Marcos Luft — Assessoria de Imprensa e Comunicação Institucional",
-  description:
-    "26+ anos unindo jornalismo de rede nacional (Rede Globo/RBS TV) e comunicação institucional de longo prazo. Assessoria de imprensa, gestão de imagem, produção de conteúdo e cobertura de eventos em Santo Ângelo e região.",
+  title: seo.title,
+  description: seo.description,
   openGraph: {
-    title: "Marcos Luft — Assessoria de Imprensa e Comunicação Institucional",
-    description:
-      "Da redação nacional para a sua mesa: 26+ anos de experiência em jornalismo e comunicação institucional, hoje à disposição de câmaras, campanhas e empresas.",
+    title: seo.title,
+    description: seo.ogDescription,
     type: "website",
     locale: "pt_BR",
     images: [{ url: `${BASE}/hero-banner.jpeg` }],

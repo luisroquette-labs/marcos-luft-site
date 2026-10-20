@@ -1,4 +1,5 @@
 import { BASE } from "../app/base";
+import { person } from "../app/content";
 import type { prova } from "../app/content";
 
 /** Forma de `prova` em app/content.ts (eyebrow/title/framing/items). */
@@ -23,7 +24,7 @@ export default function ProvaBand({ prova }: { prova: ProvaData }) {
         <img
           className="prova-band-image"
           src={`${BASE}/hero-banner.jpeg`}
-          alt="Marcos Luft em cobertura jornalística"
+          alt={`${person.name} em cobertura jornalística`}
           width={1400}
           height={350}
           loading="lazy"

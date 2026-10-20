@@ -21,6 +21,21 @@ export const person = {
   year: 2026,
 };
 
+/**
+ * Metadados globais (`<title>`/description/OpenGraph em app/layout.tsx) —
+ * migrados de lá (estavam hardcoded) para a mesma regra de content.ts como
+ * única fonte de verdade: trocar a pessoa nunca deve exigir editar layout.tsx.
+ * `title` deriva de `person.name` para acompanhar automaticamente qualquer
+ * mudança de nome; description/ogDescription são o texto de SEO em si.
+ */
+export const seo = {
+  title: `${person.name} — Assessoria de Imprensa e Comunicação Institucional`,
+  description:
+    "26+ anos unindo jornalismo de rede nacional (Rede Globo/RBS TV) e comunicação institucional de longo prazo. Assessoria de imprensa, gestão de imagem, produção de conteúdo e cobertura de eventos em Santo Ângelo e região.",
+  ogDescription:
+    "Da redação nacional para a sua mesa: 26+ anos de experiência em jornalismo e comunicação institucional, hoje à disposição de câmaras, campanhas e empresas.",
+};
+
 /** Seção hero — lidera com o ângulo 1 do perfil (§2) e o cargo atual em destaque (CK-2). */
 export const hero = {
   eyebrow: "Assessoria de Imprensa & Comunicação Institucional",
@@ -166,6 +181,21 @@ export const trajetoria = {
       current: true,
       body: "Desde 2017, assessor de imprensa e, a partir de agosto de 2026, Especialista em Comunicação de Marketing em tempo integral na Câmara de Vereadores de Santo Ângelo — comunicação institucional sob pressão real: sessão pública, deadline inegociável e múltiplos interesses políticos simultâneos, não teoria de agência.",
     },
+  ],
+};
+
+/**
+ * Bio estendida de /sobre — migrada de app/sobre/page.tsx (estava hardcoded)
+ * para a mesma regra de content.ts como única fonte de verdade. `teaser` é a
+ * linha de abertura ao lado da foto; `bio` é o corpo corrido, um parágrafo
+ * por item, amarrando as três fases de `trajetoria.items` em texto corrido —
+ * mesma disciplina de fonte do resto do arquivo (profile-extraction.md).
+ */
+export const sobre = {
+  teaser:
+    "26 anos entre os dois lados da notícia: da câmera da Rede Globo/RBS TV à comunicação institucional pública.",
+  bio: [
+    "Catorze deles operando câmera e locução na RBS TV, afiliada Rede Globo, contribuindo com reportagens para o Jornal Nacional, o Globo Repórter, o Jornal do Almoço e o RBS Notícias; outros sete, à frente do microfone na Rádio Novos Horizontes, em Santo Ângelo/RS. Desde 2017, aplica essa vivência de redação à comunicação institucional pública na Câmara de Vereadores de Santo Ângelo — hoje como Especialista em Comunicação de Marketing em tempo integral.",
   ],
 };
 
