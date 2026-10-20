@@ -136,8 +136,18 @@ export default function SmoothScroll() {
     };
     window.addEventListener("resize", onResize);
 
+    // Rebuild também quando o documento reflui SEM um resize de janela — FAQ/
+    // accordion abrindo, o swap poster->frame do vídeo, imagens lazy chegando.
+    // Qualquer um desloca o topo absoluto de uma seção e dessincronizaria todos
+    // os offsets de snap seguintes (que são cacheados por posição). O
+    // ResizeObserver no <body> pega todos; o debounce por rAF do onResize agrupa
+    // as rajadas.
+    const reflowObserver = new ResizeObserver(onResize);
+    reflowObserver.observe(document.body);
+
     return () => {
       window.removeEventListener("resize", onResize);
+      reflowObserver.disconnect();
       cancelAnimationFrame(resizeRaf);
       removers.forEach((remove) => remove());
       snap.destroy();

@@ -194,19 +194,24 @@ header img { height: 34px; width: auto; }
 .stat-label { font-family: var(--font-ui); font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
 
 /* ---------- seção genérica ---------- */
-/* Uma seção = uma tela (regra de ouro da fábrica). Altura trava em 100svh e o
-   conteúdo é centrado verticalmente; nada rola dentro de uma seção. Seções de
-   conteúdo longo genuíno (índice do blog) optam por `.section--flow`, que solta
-   a altura e NÃO recebe data-snap. */
+/* Uma seção = uma tela (regra de ouro da fábrica) — mas SÓ quando a seção é um
+   painel snapável (`[data-snap]`). Altura e snap andam juntos: o SmoothScroll
+   registra o snap exatamente nas seções `[data-snap]`, então amarrar o 100svh
+   ao MESMO seletor mantém uma única fonte de verdade e impede que uma página de
+   conteúdo corrido (bio longa de um clone futuro, 404, política) caia sem querer
+   no 100svh que centraliza e corta o topo. Conteúdo corrido usa `.section` cru
+   (altura solta) ou `.section--flow`. */
 .section {
   position: relative;
-  min-height: 100svh;
-  height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 48px 0;
   scroll-margin-top: var(--header-h);
+}
+.section[data-snap] {
+  min-height: 100svh;
+  height: 100svh;
 }
 /* Exceção consciente: conteúdo corrido (lista do blog) rola normal. Solta a
    altura fixa mas mantém o piso de uma tela. Sem data-snap no markup. */
