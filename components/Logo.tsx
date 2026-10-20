@@ -5,7 +5,6 @@ export default function Logo() {
     <img
       src={`${BASE}/logo-primary.svg`}
       alt="Marcos Luft"
-      className="h-auto max-w-xs"
       loading="eager"
     />
   );

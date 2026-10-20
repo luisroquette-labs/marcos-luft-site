@@ -1,0 +1,213 @@
+/* Career timeline — ink-on-cream only (AD-1 monochrome). Every colour
+   resolves to the site's custom properties: --cream ground, --ink/
+   --ink-soft text, --ink-hairline rules/line/dot border. */
+
+.track {
+  position: relative;
+  display: flex;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  list-style: none;
+  margin: 0;
+  padding: clamp(2.5rem, 7vw, 4rem) 0;
+}
+
+/* The horizontal line every dot sits on. */
+.baseline {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--ink-hairline);
+}
+
+/* Fixed, identical height for every node: the baseline cuts it exactly in
+   half, so a dot lands on the line whether its card sits above or below —
+   no JS measurement needed. */
+.node {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: clamp(21rem, 30vw, 25rem);
+}
+
+.stem {
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  background: var(--ink-hairline);
+}
+
+.node[data-position="above"] .stem {
+  bottom: 50%;
+  height: clamp(1.4rem, 3.4vw, 2.2rem);
+}
+
+.node[data-position="below"] .stem {
+  top: 50%;
+  height: clamp(1.4rem, 3.4vw, 2.2rem);
+}
+
+.dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+}
+
+/* The current milestone's dot is solid, not hollow — a visual difference
+   from every other node, not merely a data one (CK-2/CK-3). */
+.node[data-timeline-current="true"] .dot {
+  background: var(--ink);
+}
+
+/* Card grows away from the baseline — upward when above, downward when
+   below — anchored by the edge nearest the stem so it never drifts off
+   the dot it belongs to. */
+.card {
+  position: absolute;
+  inset-inline: 0;
+  text-align: center;
+}
+
+.node[data-position="above"] .card {
+  bottom: calc(50% + clamp(1.4rem, 3.4vw, 2.2rem));
+}
+
+.node[data-position="below"] .card {
+  top: calc(50% + clamp(1.4rem, 3.4vw, 2.2rem));
+}
+
+/* The large serif year — the centrepiece of this reference, unlike
+   PigmentLedger where the employer name played that role. */
+.year {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.6rem;
+  vertical-align: middle;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.22em 0.6em;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  border-radius: 999px;
+}
+
+.employer {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+  color: var(--ink);
+}
+
+.role {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+.location {
+  margin: 0.3rem 0 0;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.body {
+  margin: 0.6rem 0 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill {
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.7rem;
+  padding: 0.3em 0.7em;
+  border: 1px solid var(--ink-hairline);
+  border-radius: 999px;
+  color: var(--ink-soft);
+}
+
+/* Mobile: no room for 3 columns or a giant serif year — collapse to a
+   compact vertical list, left rail doubling as the connecting line. */
+@media (max-width: 560px) {
+  .track {
+    flex-direction: column;
+    gap: 0;
+    padding: 1.5rem 0;
+  }
+
+  .baseline {
+    display: none;
+  }
+
+  .node {
+    height: auto;
+    padding: 0 0 1.75rem 1.4rem;
+    border-left: 1px solid var(--ink-hairline);
+  }
+
+  .node:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+  }
+
+  .stem {
+    display: none;
+  }
+
+  .dot {
+    left: -1px;
+    top: 0.5em;
+    margin: -5.5px;
+  }
+
+  .card,
+  .node[data-position="above"] .card,
+  .node[data-position="below"] .card {
+    position: static;
+    inset-inline: auto;
+    text-align: left;
+  }
+
+  .year {
+    font-size: clamp(1.6rem, 6vw, 2rem);
+  }
+
+  .skills {
+    justify-content: flex-start;
+  }
+}
+
+/* Reduced motion: Reveal already resolves `.card` to its final, legible
+   state (see app/globals.css `.reveal`) — nothing further to disable here. */

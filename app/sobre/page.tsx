@@ -3,21 +3,26 @@ import Link from "next/link";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import Reveal from "../../components/Reveal";
-import PigmentLedger from "../../components/PigmentLedger";
+import CareerTimeline from "../../components/CareerTimeline";
 import { BASE } from "../base";
 import { person, trajetoria, formacao } from "../content";
 
 export const metadata: Metadata = {
   title: `Sobre — ${person.name}`,
   description: person.thesis,
+  openGraph: {
+    title: `Sobre — ${person.name}`,
+    description: person.thesis,
+    images: [{ url: `${BASE}/hero-banner.jpeg` }],
+  },
 };
 
 /**
  * Página /sobre — narrativa de trajetória estendida (CK-2/CK-3/CK-9/CK-12).
  *
- * Reusa `PigmentLedger` (substitui `EditorialTimeline`, 08) para a trajetória
- * completa — evita duplicar a lógica do marcador "atual" que ela já implementa
- * (CK-17) — e as classes
+ * Reusa `CareerTimeline` (substitui `PigmentLedger`/`EditorialTimeline`, 08)
+ * para a trajetória completa — evita duplicar a lógica do marcador "atual"
+ * que ela já implementa (CK-17) — e as classes
  * `.sobre-split`/`.plate--photo`/`.prova-band` (03/08) para enquadrar as duas
  * fotos fornecidas, em vez de reimplementar o mesmo grid em CSS novo.
  *
@@ -29,6 +34,7 @@ export default function SobrePage() {
     <>
       <SiteHeader />
 
+      <main>
       <section className="section" style={{ paddingTop: 64, paddingBottom: 32 }}>
         <div className="wrap">
           <Reveal>
@@ -74,7 +80,7 @@ export default function SobrePage() {
             <span className="eyebrow">{trajetoria.eyebrow}</span>
             <h2>{trajetoria.title}</h2>
           </Reveal>
-          <PigmentLedger items={trajetoria.items} />
+          <CareerTimeline items={trajetoria.items} />
         </div>
       </section>
 
@@ -129,6 +135,7 @@ export default function SobrePage() {
           </Link>
         </div>
       </section>
+      </main>
 
       <SiteFooter />
     </>

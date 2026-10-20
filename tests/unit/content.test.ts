@@ -5,7 +5,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { servicos, trajetoria, prova, formacao, faq } from "../../app/content.ts";
+import { servicos, trajetoria, prova, formacao, faq, nav } from "../../app/content.ts";
 
 test("servicos has exactly 4 offers, each with a non-empty title/cta/href", () => {
   assert.equal(servicos.items.length, 4);
@@ -76,5 +76,30 @@ test("faq has at least 3 real questions", () => {
   for (const item of faq.items) {
     assert.ok(item.q.length > 0, "faq item missing a question");
     assert.ok(item.a.length > 0, `faq item missing an answer for: ${item.q}`);
+  }
+});
+
+// REGRESSÃO: header nav items were bare "#trajetoria"-style anchors, which
+// only resolve on the home page — a "/" prefix is what makes them resolve
+// from any route (SiteHeader renders them as <a href={`${BASE}${href}`}>).
+test('every in-page nav anchor is rooted at "/#..." — never a bare "#..." fragment', () => {
+  const anchorItems = nav.filter((item) => item.href.includes("#"));
+
+  assert.ok(anchorItems.length > 0, "expected at least one anchor nav item to exist");
+  for (const item of anchorItems) {
+    assert.match(
+      item.href,
+      /^\/#/,
+      `anchor nav item "${item.label}" (${item.href}) must start with "/#" to resolve from any route`,
+    );
+  }
+});
+
+test("every non-anchor nav item is a real route starting with /", () => {
+  const routeItems = nav.filter((item) => !item.href.includes("#"));
+
+  assert.ok(routeItems.length > 0, "expected at least one route nav item to exist");
+  for (const item of routeItems) {
+    assert.match(item.href, /^\//, `route nav item "${item.label}" (${item.href}) must start with "/"`);
   }
 });

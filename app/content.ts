@@ -248,9 +248,9 @@ export const faq = {
  */
 export const nav = [
   { href: "/servicos", label: "Serviços" },
-  { href: "#trajetoria", label: "Trajetória" },
-  { href: "#prova", label: "Prova" },
+  { href: "/#trajetoria", label: "Trajetória" },
+  { href: "/#prova", label: "Prova" },
   { href: "/sobre", label: "Sobre" },
   { href: "/blog", label: "Blog" },
-  { href: "#contato", label: "Contato" },
+  { href: "/#contato", label: "Contato" },
 ];

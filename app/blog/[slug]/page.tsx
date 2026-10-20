@@ -39,6 +39,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   return (
     <>
       <SiteHeader />
+      <main>
       <article className="article">
         <div className="wrap" style={{ width: "100%" }}>
           <Link href="/blog" className="back-link">← Voltar ao blog</Link>
@@ -65,6 +66,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           </div>
         </div>
       </article>
+      </main>
       <SiteFooter />
     </>
   );

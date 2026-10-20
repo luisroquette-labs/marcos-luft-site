@@ -4,23 +4,37 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import Reveal from "../../components/Reveal";
 import EditorialPostCard from "../../components/EditorialPostCard";
+import { BASE } from "../base";
 import { person } from "../content";
 import { posts } from "../posts";
 
+const DESCRIPTION = "Assessoria de imprensa e comunicação institucional — bastidores da redação e da Câmara.";
+
 export const metadata: Metadata = {
   title: `Blog — ${person.name}`,
-  description: "Assessoria de imprensa e comunicação institucional — bastidores da redação e da Câmara.",
+  description: DESCRIPTION,
+  openGraph: {
+    title: `Blog — ${person.name}`,
+    description: DESCRIPTION,
+    images: [{ url: `${BASE}/hero-banner.jpeg` }],
+  },
 };
 
 export default function BlogIndex() {
   return (
     <>
       <SiteHeader />
+      <main>
       <section className="section" style={{ paddingTop: 64 }}>
         <div className="wrap">
           <Reveal className="section-head" >
             <span className="eyebrow">Blog</span>
-            <h2>Bastidores da <span className="em">assessoria de imprensa</span>.</h2>
+            {/* Explicit size/margin: `.section-head h2` carries this clamp in
+                globals.css, but that selector only targets h2 — this heading
+                moved to h1 for document outline (CK: one h1 per page). */}
+            <h1 style={{ fontSize: "clamp(2rem, 4.6vw, 3.3rem)", marginTop: 18 }}>
+              Bastidores da <span className="em">assessoria de imprensa</span>.
+            </h1>
             <p className="lead">Critérios reais de pauta, comunicação institucional e cobertura de eventos, escritos por quem passou 26 anos dos dois lados da câmera.</p>
           </Reveal>
           <div className="post-list">
@@ -31,6 +45,7 @@ export default function BlogIndex() {
           </p>
         </div>
       </section>
+      </main>
       <SiteFooter />
     </>
   );

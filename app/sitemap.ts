@@ -9,13 +9,16 @@ const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://luisroquette-labs.gith
 
 /**
  * Rotas reais do site: "/" + toda entrada de `content.nav` que aponta para
- * uma página própria (não uma âncora de seção, que começa com "#") + cada
- * slug de `posts.ts`. Extraída do wrapper `sitemap()` abaixo para que o
- * teste unitário (CK-6) verifique a lista exata de rotas sem depender do
- * tipo/runtime `MetadataRoute.Sitemap` do Next.
+ * uma página própria (não uma âncora de seção, hoje escrita "/#secao" para
+ * resolver de qualquer rota — por isso o filtro exclui "#", não só confere
+ * o prefixo "/") + cada slug de `posts.ts`. Extraída do wrapper `sitemap()`
+ * abaixo para que o teste unitário (CK-6) verifique a lista exata de rotas
+ * sem depender do tipo/runtime `MetadataRoute.Sitemap` do Next.
  */
 export function getRoutes(allPosts: { slug: string }[] = posts): string[] {
-  const pageRoutes = nav.filter((item) => item.href.startsWith("/")).map((item) => item.href);
+  const pageRoutes = nav
+    .filter((item) => item.href.startsWith("/") && !item.href.includes("#"))
+    .map((item) => item.href);
   return ["/", ...pageRoutes, ...allPosts.map((post) => `/blog/${post.slug}`)];
 }
 

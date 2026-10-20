@@ -8,7 +8,7 @@ import GhostAccordion from "../components/GhostAccordion";
 import EditorialPostCard from "../components/EditorialPostCard";
 import FeatureSpotlight from "../components/FeatureSpotlight";
 import ProvaBand from "../components/ProvaBand";
-import PigmentLedger from "../components/PigmentLedger";
+import CareerTimeline from "../components/CareerTimeline";
 import SobreSplit from "../components/SobreSplit";
 import ClosingCTA from "../components/ClosingCTA";
 import { person, hero, stats, servicos, competencias, trajetoria, prova, formacao, faq } from "./content";
@@ -26,6 +26,7 @@ export default function Home() {
     <>
       <SiteHeader />
 
+      <main>
       {/* HERO — Crowd Canvas como camada de fundo; o badge do cargo atual
           (CK-2) fica dentro do bloco de texto, visualmente distinto do
           cargo atual na trajetória (seção 6, segundo lugar onde CK-2 se
@@ -107,7 +108,7 @@ export default function Home() {
       </section>
 
       {/* TRAJETÓRIA — 3 entradas em ordem ascendente por startDate; o item
-          `current` ganha marcação visual própria dentro de PigmentLedger
+          `current` ganha marcação visual própria dentro de CareerTimeline
           (CK-2/CK-3). */}
       <section className="section" id="trajetoria">
         <div className="wrap">
@@ -115,9 +116,7 @@ export default function Home() {
             <span className="eyebrow">{trajetoria.eyebrow}</span>
             <h2>{trajetoria.title}</h2>
           </div>
-          <Reveal>
-            <PigmentLedger items={trajetoria.items} />
-          </Reveal>
+          <CareerTimeline items={trajetoria.items} />
         </div>
       </section>
 
@@ -198,6 +197,7 @@ export default function Home() {
           marqueePhrase={person.name}
         />
       </Reveal>
+      </main>
 
       <SiteFooter />
     </>

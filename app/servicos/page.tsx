@@ -4,11 +4,17 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import ClosingCTA from "../../components/ClosingCTA";
 import Reveal from "../../components/Reveal";
+import { BASE } from "../base";
 import { person, servicos, competencias } from "../content";
 
 export const metadata: Metadata = {
   title: `Serviços — ${person.name}`,
   description: servicos.lead,
+  openGraph: {
+    title: `Serviços — ${person.name}`,
+    description: servicos.lead,
+    images: [{ url: `${BASE}/hero-banner.jpeg` }],
+  },
 };
 
 /**
@@ -27,6 +33,7 @@ export default function ServicosPage() {
     <>
       <SiteHeader />
 
+      <main>
       <section className="section" style={{ paddingTop: 64, paddingBottom: 0 }}>
         <div className="wrap">
           <Reveal className="section-head">
@@ -100,6 +107,7 @@ export default function ServicosPage() {
           ← Voltar ao início
         </Link>
       </div>
+      </main>
 
       <SiteFooter />
     </>
